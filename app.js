@@ -488,6 +488,35 @@ const programs = [
 ];
 const profileKey = 'utah-hunting-calendar-draw-points-v1';
 let odds;
+let oddsRequest;
+
+function loadDrawHistory() {
+  if (oddsRequest) return;
+  oddsRequest = fetch('./draw-history.json?v=6.3')
+    .then(response => {
+      if (!response.ok) throw new Error('Historical dataset unavailable');
+      return response.json();
+    })
+    .then(report => {
+      if (report.version !== 2 || !Array.isArray(report.hunts)) throw new Error('Unexpected report format');
+      odds = report.hunts;
+    })
+    .catch(error => { odds = null; console.error(error); })
+    .finally(() => { if (location.hash === '#planner') render(); });
+}
+
+function matchHistory(hunts, program, residency, points, reportYear) {
+  return (hunts || []).flatMap(([year, id, code, hunt, source, resident, nonresident]) => {
+    if (id !== program || (reportYear && year !== Number(reportYear))) return [];
+    const group = residency === 'Resident' ? resident : nonresident;
+    const match = group.find(([level]) => level === points);
+    if (!match) return [];
+    const [, applicants, issued] = match;
+    return [{ year, code, hunt, source, applicants, issued }];
+  }).sort((left, right) => right.year - left.year ||
+    Number(right.applicants > 0) - Number(left.applicants > 0) ||
+    (right.issued / (right.applicants || 1)) - (left.issued / (left.applicants || 1)));
+}
 
 function readProfile() {
   try {
@@ -498,6 +527,7 @@ function readProfile() {
 }
 
 function planner() {
+  loadDrawHistory();
   const profile = readProfile();
   const controls = element('div', '', { class: 'planner-controls' });
   const program = element('select');
@@ -505,13 +535,14 @@ function planner() {
   const residency = element('select');
   for (const name of ['Resident', 'Nonresident']) residency.append(element('option', name));
   const points = element('input', '', { type: 'number', min: '0', max: '99', step: '1' });
+  const huntSearch = element('input', '', { type: 'search', placeholder: 'Unit, method, or hunt code' });
   const year = element('select');
   year.append(element('option', 'All loaded years', { value: '' }));
-  for (const value of [...new Set((odds || []).map(row => row.year))].sort().reverse()) {
+  for (const value of [...new Set((odds || []).map(([reportYear]) => reportYear))].sort().reverse()) {
     year.append(element('option', String(value)));
   }
   for (const [label, control] of [['Draw program', program], ['Residency', residency],
-    ['Points', points], ['Report year', year]]) {
+    ['Points', points], ['Report year', year], ['Search hunts', huntSearch]]) {
     const field = element('label', label);
     field.append(control);
     controls.append(field);
@@ -541,27 +572,38 @@ function planner() {
     if (data.opportunities.some(item => item.id === calendarId)) {
       result.append(link('View application dates and official links', '#hunt/' + calendarId));
     }
-    const rows = (odds || []).filter(row => row.program === program.value &&
-      row.residency === residency.value && row.points === points.valueAsNumber &&
-      (!year.value || row.year === Number(year.value)));
-    rows.sort((left, right) => right.year - left.year ||
-      (right.issued / (right.applicants || 1)) - (left.issued / (left.applicants || 1)));
+    const query = huntSearch.value.trim().toLowerCase();
+    const rows = matchHistory(odds, program.value, residency.value, points.valueAsNumber, year.value)
+      .filter(row => !query || (row.hunt + ' ' + row.code).toLowerCase().includes(query));
     if (!odds) result.append(element('p', odds === null ? 'The historical dataset could not be loaded.' : 'Loading historical results…'));
     else if (!points.value) result.append(element('p', 'Enter your points to compare the matching historical group.'));
     else if (!points.validity.valid) result.append(element('p', 'Enter a whole number from 0 to 99.'));
     else if (!rows.length) result.append(element('p', 'No loaded report row matches this selection.'));
     else {
       const list = element('ul', '', { class: 'cards' });
-      for (const row of rows) {
-        const item = element('li', '', { 'data-species': species });
-        const rate = row.applicants ? (row.issued / row.applicants * 100).toFixed(1) + '%' : 'No eligible applicants';
-        item.append(element('strong', row.hunt + ' · ' + row.code),
-          element('p', row.year + ' · ' + row.pool + ' · ' + rate + ' · ' +
-            row.issued.toLocaleString() + ' permits / ' + row.applicants.toLocaleString() + ' eligible applicants'),
-          link('Official DWR report', row.source));
-        list.append(item);
+      let displayed = 0;
+      const showMore = element('button', 'Show more results', { type: 'button' });
+      function appendResults() {
+        for (const row of rows.slice(displayed, displayed + 24)) {
+          const item = element('li', '', { 'data-species': species });
+          const rate = row.applicants ? (row.issued / row.applicants * 100).toFixed(1) + '%' : 'No eligible applicants';
+          item.append(element('strong', row.hunt + ' · ' + row.code),
+            element('p', row.year + ' · ' + rate + ' · ' +
+              row.issued.toLocaleString() + ' permits / ' + row.applicants.toLocaleString() + ' eligible applicants'),
+            link('Official DWR report', row.source));
+          list.append(item);
+        }
+        displayed = list.children.length;
+        showMore.hidden = displayed >= rows.length;
       }
-      result.append(list);
+      showMore.onclick = () => {
+        const previousCount = displayed;
+        appendResults();
+        list.children[previousCount]?.querySelector('a')?.focus();
+      };
+      appendResults();
+      result.append(element('p', rows.length + ' matching hunt' + (rows.length === 1 ? '' : 's')),
+        list, showMore);
     }
     result.append(element('p', 'Historical success rates describe those applicants and years. Future results depend on quotas and demand.'),
       link('Browse official DWR reports', species === 'Turkey'
@@ -599,6 +641,7 @@ function planner() {
     showResults();
   };
   year.onchange = showResults;
+  huntSearch.oninput = showResults;
   refreshPoints();
   content.append(controls, persistence, result);
   showResults();
@@ -608,13 +651,6 @@ try {
   const response = await fetch('./opportunities.json?v=4');
   if (!response.ok) throw new Error('Fixture unavailable');
   data = await response.json();
-  fetch('./draw-history.json?v=4')
-    .then(response => {
-      if (!response.ok) throw new Error('Historical dataset unavailable');
-      return response.json();
-    })
-    .then(rows => { odds = rows; if (location.hash === '#planner') render(); })
-    .catch(error => { odds = null; console.error(error); if (location.hash === '#planner') render(); });
   data.events.sort((left, right) => left.start.localeCompare(right.start));
   populateFilters();
   filters.forEach(control => control.addEventListener('input', render));

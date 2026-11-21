@@ -71,3 +71,46 @@ label>*{width:100%}
 @media(max-width:380px){.year-month{padding:.45rem}.mini-week>span:not(.mini-season){font-size:.66rem}}
 
 .mini-week>span:not(.mini-season){grid-row:1}
+
+/* Site surfaces and small-screen navigation */
+:root{--paper:#f4f6f3;--ink:#172722;--line:#dce4df;--muted:#475b52}
+body{background:radial-gradient(ellipse at top right,#e5eee8 0,transparent 42rem),var(--paper)}
+.wrap{width:min(1160px,calc(100% - 2rem))}
+.masthead{background:#15382b;border-bottom:1px solid #325244}
+.masthead .wrap{min-height:4rem}
+.brand{letter-spacing:-.025em}
+nav{gap:.25rem}
+nav a{padding:.48rem .72rem;border-radius:.5rem;text-decoration:none}
+nav a:hover,nav a[aria-current]{background:#ffffff20;text-decoration:none}
+h1{font-family:system-ui,sans-serif;font-size:clamp(2rem,6vw,3.55rem);font-weight:750;letter-spacing:-.055em}
+h2,h3{letter-spacing:-.025em}
+button,input,select{border-color:#9aaea3;border-radius:.55rem}
+label{min-width:0}
+label>input,label>select{min-width:0;max-width:100%}
+.cards li,.detail,.year-month,.month-grid{border-radius:.75rem;box-shadow:0 2px 8px #142e2110}
+.cards li,.detail{overflow-wrap:anywhere}
+.cards a{font-weight:650}
+.year-grid{gap:.8rem}
+.mini-week{grid-template-rows:1.2rem repeat(5,4px);row-gap:1px}
+.mini-week-header{grid-template-rows:1.2rem}
+.mini-season{border-radius:3px;margin-inline:1px}
+.calendar-year-label{flex-wrap:wrap}
+@media(max-width:660px){
+  .wrap{width:calc(100% - 1.25rem)}
+  .masthead .wrap{padding-bottom:.5rem}
+  nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  nav a{text-align:center;min-height:44px}
+  .notice{margin-top:1rem}
+  #filters:not([hidden]),.planner-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #filters label:first-child{grid-column:1/-1}
+  .calendar-toolbar{align-items:flex-start;gap:.5rem}
+  .calendar-toolbar .toolbar{gap:.3rem}
+  .calendar-toolbar button{padding-inline:.52rem}
+  .year-grid{gap:.5rem}
+  .year-month{padding:.45rem}
+  .weekdays span{padding-inline:0;font-size:.68rem}
+  .event-bar{font-size:.69rem}
+  .detail dl{gap:.25rem}
+}
+
+.planner-controls label:last-child{grid-column:1/-1}
