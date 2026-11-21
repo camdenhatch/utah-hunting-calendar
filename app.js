@@ -396,10 +396,10 @@ function planner() {
 }
 
 try {
-  const response = await fetch('./opportunities.json');
+  const response = await fetch('./opportunities.json?v=3.1');
   if (!response.ok) throw new Error('Fixture unavailable');
   data = await response.json();
-  fetch('./draw-history.json')
+  fetch('./draw-history.json?v=3.1')
     .then(response => {
       if (!response.ok) throw new Error('Historical dataset unavailable');
       return response.json();
