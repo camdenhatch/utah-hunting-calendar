@@ -9,6 +9,7 @@ const monthFormat = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'num
 let month = new Date(today.slice(0, 7) + '-01T00:00:00Z');
 let mode = matchMedia('(max-width: 660px)').matches ? 'Agenda' : 'Month';
 let data;
+let planning = { opportunities: [], events: [] };
 let updateStatus = '';
 const feedUrl = document.querySelector('meta[name="updates-feed"]').content;
 
@@ -61,6 +62,7 @@ async function loadUpdates() {
     const response = await fetch(feedUrl, { cache: 'no-store', signal: AbortSignal.timeout(5000) });
     if (!response.ok) throw new Error('Update feed unavailable');
     mergeUpdates(await response.json());
+    planning = buildPlanningCalendar(data, today);
     populateFilters();
   } catch (error) {
     console.error(error);
@@ -111,6 +113,7 @@ function eventsFor(opportunity) {
 
 function statusOf(opportunity) {
   const { availableFrom, availableThrough } = opportunity;
+  if (opportunity.estimated) return 'Estimated';
   if (opportunity.type === 'Year-round') return 'Year-round';
   if (!availableThrough) {
     const sale = eventsFor(opportunity).find(event => event.label === 'Permit sale opens');
@@ -131,11 +134,19 @@ function statusOf(opportunity) {
 
 function filtered() {
   const [query, species, type, status] = filters.map(control => control.value);
-  return data.opportunities.filter(item =>
+  const horizon = (Number(today.slice(0, 4)) + 1) + '-12-31';
+  const scheduled = status === 'Upcoming' ? new Set([...data.events, ...planning.events]
+    .filter(event => event.start <= horizon && (event.end || event.start) >= today &&
+      (isSeason(event) || /^(Applications open|Application deadline|Permit sale opens)$/.test(event.label)))
+    .map(event => event.opportunityId)) : null;
+  const records = status === 'Upcoming' || status === 'Estimated' || !status
+    ? [...data.opportunities, ...planning.opportunities] : data.opportunities;
+  return records.filter(item =>
     (!query || (item.title + ' ' + item.unit).toLowerCase().includes(query.trim().toLowerCase())) &&
     (!species || species === item.species) &&
     (!type || type === item.type) &&
-    (!status || status === statusOf(item))
+    (!status || (scheduled ? scheduled.has(item.id) || (!item.estimated && statusOf(item) === 'Upcoming' &&
+      item.availableFrom <= horizon) : status === statusOf(item)))
   );
 }
 
@@ -186,11 +197,12 @@ function eventList(events, showExport = false) {
   const list = element('ul', '', { class: 'cards' });
   for (const event of events) {
     const item = element('li');
-    const opportunity = data.opportunities.find(record => record.id === event.opportunityId);
+    const opportunity = [...data.opportunities, ...planning.opportunities].find(record => record.id === event.opportunityId);
     item.dataset.species = opportunity.species;
     item.append(link(opportunity.title, '#hunt/' + opportunity.id),
       element('p', event.label + ' · ' + eventDate(event)));
-    if (showExport) {
+    if (event.estimated) item.append(estimateBadge(event));
+    if (showExport && !event.estimated) {
       const exportButton = element('button', 'Download calendar event',
         { 'aria-label': 'Download ' + event.label + ' calendar event' });
       exportButton.onclick = () => calendarExport(event, opportunity);
@@ -224,7 +236,7 @@ function weekSegments(events, dates) {
 function seasonMarks(events, dates, opportunities) {
   const masks = new Map();
   for (const { event, start, end } of weekSegments(events, dates)) {
-    const species = colorGroup(opportunities.get(event.opportunityId).species);
+    const species = event.estimated ? 'Estimated' : colorGroup(opportunities.get(event.opportunityId).species);
     const span = ((1 << (end - start + 1)) - 1) << start;
     masks.set(species, (masks.get(species) || 0) | span);
   }
@@ -234,11 +246,11 @@ function seasonMarks(events, dates, opportunities) {
 function yearOverview(year, events, opportunities) {
   const section = element('section', '', { 'aria-label': 'Hunting seasons in ' + year });
   const legend = element('ul', '', { class: 'species-legend', 'aria-label': 'Season colors by species' });
-  for (const species of speciesColors) legend.append(element('li', species, { 'data-species': species }));
+  for (const species of [...speciesColors, 'Estimated']) legend.append(element('li', species, { 'data-species': species }));
   section.append(legend);
-  const seasons = events.filter(event => /\bseason\b/i.test(event.label));
+  const seasons = events.filter(isSeason);
   if (!seasons.some(event => event.start <= year + '-12-31' && (event.end || event.start) >= year + '-01-01')) {
-    section.append(element('p', 'No published season dates match this year and your filters.'));
+    section.append(element('p', 'No season dates match this year and your filters.'));
   }
 
   const grid = element('div', '', { class: 'year-grid' });
@@ -251,7 +263,7 @@ function yearOverview(year, events, opportunities) {
     const groups = [...new Set(monthly.map(event => colorGroup(opportunities.get(event.opportunityId).species)))];
     const name = formatter.format(first);
     const tile = element('button', '', { class: 'year-month', 'aria-label': name + ' ' + year +
-      (groups.length ? ', seasons: ' + groups.join(', ') : ', no matching seasons') + '. Open month view.' });
+      (groups.length ? ', seasons: ' + groups.join(', ') : ', no matching seasons') + (monthly.some(event => event.estimated) ? ', includes estimates' : '') + '. Open month view.' });
     tile.append(element('strong', name));
     const preview = element('span', '', { class: 'mini-month', 'aria-hidden': 'true' });
     const header = element('span', '', { class: 'mini-week mini-week-header' });
@@ -267,7 +279,7 @@ function yearOverview(year, events, opportunities) {
         }));
       }
       const marks = seasonMarks(monthly, dates.map(date => date < firstKey || date > last ? null : date), opportunities);
-      for (const [lane, species] of speciesColors.entries()) {
+      for (const [lane, species] of [...speciesColors, 'Estimated'].entries()) {
         const mask = marks.get(species) || 0;
         for (let start = 0; start < 7; start++) {
           if (!(mask & (1 << start))) continue;
@@ -319,10 +331,10 @@ function monthGrid(events, opportunities) {
     });
     for (const { event, start, end, lane } of weekSegments(events, dates)) {
       const opportunity = opportunities.get(event.opportunityId);
-      const label = opportunity.title + ' · ' + event.label;
+      const label = (event.estimated ? 'Estimated · ' : '') + opportunity.title + ' · ' + event.label;
       const bar = link(label, '#hunt/' + opportunity.id);
       bar.className = 'event-bar';
-      bar.dataset.species = opportunity.species;
+      bar.dataset.species = event.estimated ? 'Estimated' : opportunity.species;
       bar.title = label + ' · ' + eventDate(event);
       bar.setAttribute('aria-label', bar.title);
       bar.style.gridColumn = (start + 1) + ' / ' + (end + 2);
@@ -340,7 +352,8 @@ function calendar() {
   const first = dateKey(month);
   const last = dateKey(new Date(Date.UTC(year, index + 1, 0)));
   const opportunities = new Map(filtered().map(item => [item.id, item]));
-  const events = data.events.filter(event => opportunities.has(event.opportunityId));
+  const allEvents = [...data.events, ...planning.events];
+  const events = allEvents.filter(event => opportunities.has(event.opportunityId));
   const monthly = events.filter(event => event.start <= last && (event.end || event.start) >= first);
   const bar = element('div', '', { class: 'toolbar calendar-toolbar' });
   const controls = element('div', '', { class: 'toolbar' });
@@ -366,7 +379,7 @@ function calendar() {
   const yearLabel = element('label', 'Calendar year', { class: 'calendar-year-label' });
   const picker = element('select', '', { id: 'calendar-year-picker' });
   const years = new Set([Number(today.slice(0, 4)), year]);
-  for (const event of data.events) {
+  for (const event of allEvents) {
     const start = Number(event.start.slice(0, 4));
     const end = Number((event.end || event.start).slice(0, 4));
     for (let value = start; value <= end; value++) years.add(value);
@@ -383,6 +396,9 @@ function calendar() {
   bar.append(element('h2', mode === 'Year' ? String(year) : monthFormat.format(month),
     { id: 'calendar-month-title', tabindex: '-1' }), controls);
   content.append(bar);
+  if (events.some(event => event.estimated && event.start <= year + '-12-31' && (event.end || event.start) >= year + '-01-01')) {
+    content.append(element('p', 'Orange marks are estimated from prior seasons. Confirm dates with Utah DWR before applying or hunting.', { class: 'estimate-note' }));
+  }
   if (mode === 'Year') {
     content.append(yearOverview(year, events, opportunities));
     return;
@@ -402,13 +418,14 @@ function opportunityList(items) {
     const row = element('li', '', { 'data-species': item.species });
     row.append(link(item.title, '#hunt/' + item.id),
       element('p', [item.species, item.type, statusOf(item)].join(' · ')));
+    if (item.estimated) row.append(estimateBadge());
     list.append(row);
   }
   return list;
 }
 
 function detail(id) {
-  const item = data.opportunities.find(record => record.id === id);
+  const item = [...data.opportunities, ...planning.opportunities].find(record => record.id === id);
   content.append(link('All opportunities', '#opportunities'));
   if (!item) {
     heading.textContent = 'Opportunity unavailable';
@@ -426,7 +443,8 @@ function detail(id) {
   panel.append(facts);
   if (item.note) panel.append(element('p', item.note));
   if (item.verifiedOn) panel.append(element('p', 'Source reviewed ' + formatDate(item.verifiedOn)));
-  panel.append(link('Official dates and regulations', item.sourceUrl));
+  if (item.estimated) panel.append(element('p', 'Estimated from earlier published dates. Confirm the current schedule with Utah DWR.', { class: 'estimate-note' }));
+  panel.append(link(item.estimated ? 'Basis for estimate · DWR source' : 'Official dates and regulations', item.sourceUrl));
   if (item.actionUrl) {
     const action = item.type === 'Draw' || item.type === 'Points only'
       ? 'Apply or check results' : 'Check permit availability or buy';
@@ -434,14 +452,14 @@ function detail(id) {
     row.append(link(action, item.actionUrl));
     panel.append(row);
   }
-  const events = eventsFor(item);
+  const events = item.estimated ? planning.events.filter(event => event.opportunityId === item.id) : eventsFor(item);
   if (events.length) panel.append(element('h2', 'Calendar events'), eventList(events, true));
   content.append(panel);
 }
 
 function render() {
   if (!data) return;
-  const route = location.hash.slice(1) || 'home';
+  const route = location.hash === '#compare' ? 'planner' : location.hash.slice(1) || 'home';
   for (const anchor of document.querySelectorAll('nav a')) {
     if (anchor.hash === '#' + route) anchor.setAttribute('aria-current', 'page');
     else anchor.removeAttribute('aria-current');
@@ -452,9 +470,6 @@ function render() {
   if (route === 'planner') {
     heading.textContent = 'Draw planner';
     planner();
-  } else if (route === 'compare') {
-    heading.textContent = 'Hunt Compare';
-    huntCompare();
   } else if (route === 'calendar') {
     heading.textContent = 'Calendar';
     calendar();
@@ -496,7 +511,7 @@ let oddsRequest;
 
 function loadDrawHistory() {
   if (oddsRequest) return;
-  oddsRequest = fetch('./draw-history.json?v=7')
+  oddsRequest = fetch('./draw-history.json?v=8')
     .then(response => {
       if (!response.ok) throw new Error('Historical dataset unavailable');
       return response.json();
@@ -552,7 +567,10 @@ function planner() {
     field.append(control);
     controls.append(field);
   }
-  const result = element('div', '', { 'aria-live': 'polite' });
+  const result = element('section', '', { 'aria-live': 'polite' });
+  const tradeoffs = element('section');
+  const split = element('div', '', { class: 'planner-split' });
+  split.append(result, tradeoffs);
   const persistence = element('p', 'Points are saved in this browser.');
   program.value = programs.some(([id]) => id === profile.program) ? profile.program : programs[0][0];
   residency.value = profile.residency === 'Nonresident' ? 'Nonresident' : 'Resident';
@@ -575,7 +593,8 @@ function planner() {
     result.replaceChildren(element('h2', 'Historical first-choice results'));
     const selected = programs.find(([id]) => id === program.value);
     const [, , species, , calendarId] = selected;
-    result.append(pointsGuide(selected));
+    const balance = points.value && points.validity.valid ? points.valueAsNumber : undefined;
+    renderTradeoffs(tradeoffs, selected, residency.value, profile, balance);
     if (data.opportunities.some(item => item.id === calendarId)) {
       result.append(link('View application dates and official links', '#hunt/' + calendarId));
     }
@@ -585,7 +604,7 @@ function planner() {
     if (!odds) result.append(element('p', odds === null ? 'The historical dataset could not be loaded.' : 'Loading historical results…'));
     else if (!points.value) result.append(element('p', 'Enter your points to compare the matching historical group.'));
     else if (!points.validity.valid) result.append(element('p', 'Enter a whole number from 0 to 99.'));
-    else if (!rows.length) result.append(element('p', 'No loaded report row matches this selection.'));
+    else if (!rows.length) result.append(element('p', 'No comparable cohort in the loaded reports. Try another report year or hunt search, or use the permit and point-only options in Plan your points.'));
     else {
       const list = element('ul', '', { class: 'cards' });
       let displayed = 0;
@@ -596,6 +615,13 @@ function planner() {
           item.append(element('strong', row.hunt + ' · ' + row.code),
             element('p', historyText(row)),
             link('Official DWR report', row.source));
+          const season = huntSeasons[row.code]?.[row.year];
+          if (season) {
+            const [start, end, source] = season;
+            const dates = element('p', 'Published historical season · ' + formatDate(start) + ' – ' + formatDate(end) + ' · ');
+            dates.append(link('DWR guidebook', source));
+            item.append(dates);
+          }
           list.append(item);
         }
         displayed = list.children.length;
@@ -617,7 +643,7 @@ function planner() {
     const alternatives = data.opportunities.filter(item => item.species === species &&
       ['General sale', 'Leftover sale'].includes(item.type) && item.actionUrl);
     if (!alternatives.length) {
-      result.append(element('p', 'No same-species purchase option is listed in the calendar.'),
+      result.append(element('p', 'To build points for this species, follow the point-only steps in Plan your points. For a permit without the draw, check the latest DWR inventory.'),
         link('Check DWR’s remaining permits page', 'https://wildlife.utah.gov/remainingpermits'));
       return;
     }
@@ -648,7 +674,7 @@ function planner() {
   year.onchange = showResults;
   huntSearch.oninput = showResults;
   refreshPoints();
-  content.append(controls, persistence, result);
+  content.append(controls, persistence, split);
   showResults();
 }
 
@@ -657,6 +683,7 @@ try {
   if (!response.ok) throw new Error('Fixture unavailable');
   data = await response.json();
   data.events.sort((left, right) => left.start.localeCompare(right.start));
+  planning = buildPlanningCalendar(data, today);
   populateFilters();
   filters.forEach(control => control.addEventListener('input', render));
   window.addEventListener('hashchange', () => { render(); heading.focus(); });
@@ -704,167 +731,138 @@ function pointsGuide([id, name, , kind], points) {
   return panel;
 }
 
-function huntPriority(title, program, focus) {
-  const premium = /\bpremium\b/i.test(title);
-  const lifetime = ['moose', 'goat', 'rocky-sheep', 'desert-sheep'].includes(program);
-  return {
-    score: focus === 'unique' ? 3 * Number(lifetime) + Number(premium) : 3 * Number(premium) + Number(lifetime),
-    reason: [premium && 'DWR premium hunt designation', lifetime && 'Once-in-a-lifetime draw program']
-      .filter(Boolean).join(' · ')
-  };
+
+function isSeason(event) {
+  return /\bseason\b/i.test(event.label);
 }
 
-function huntCompare() {
-  loadDrawHistory();
-  const key = 'utah-hunt-compare-v1';
-  let options = {};
-  try { options = JSON.parse(localStorage.getItem(key)) || {}; } catch {}
-  const profile = readProfile();
-  const species = [...new Set(data.opportunities.map(item => item.species))].sort();
-  const selected = new Set(options.species || ['Elk', 'Deer']);
-  const residency = element('select');
-  for (const label of ['Resident', 'Nonresident']) residency.append(element('option', label));
-  residency.value = options.residency || profile.residency || 'Resident';
-  const focus = element('select');
-  for (const [value, label] of [['trophy', 'Premium hunts'], ['unique', 'Unique opportunities']]) {
-    focus.append(element('option', label, { value }));
-  }
-  focus.value = options.focus || 'trophy';
-  const year = element('select');
-  const current = Number(today.slice(0, 4));
-  for (let value = current; value <= Math.max(current + 1, 2028); value++) year.append(element('option', String(value)));
-  if ([...year.options].some(option => option.value === options.year)) year.value = options.year;
-  const animals = element('fieldset', '', { class: 'compare-animals' });
-  animals.append(element('legend', 'Animals to compare'));
-  for (const animal of species) {
-    const input = element('input', '', { type: 'checkbox' });
-    input.checked = selected.has(animal);
-    input.onchange = () => {
-      if (input.checked) selected.add(animal);
-      else selected.delete(animal);
-      update();
-    };
-    const label = element('label');
-    label.append(input, document.createTextNode(animal));
-    animals.append(label);
-  }
-  const controls = element('div', '', { class: 'planner-controls compare-controls' });
-  for (const [label, input] of [['Residency', residency], ['Prioritize', focus], ['Planning year', year]]) {
-    const field = element('label', label);
-    field.append(input);
-    input.onchange = update;
-    controls.append(field);
-  }
-  const result = element('div');
-  content.append(animals, controls, result);
+function estimateBadge(event) {
+  const basis = event?.basis ? ' · Based on ' + event.basis : '';
+  return element('p', 'Estimated from prior seasons' + basis, { class: 'estimate-badge' });
+}
 
-  function update() {
-    try { localStorage.setItem(key, JSON.stringify({ species: [...selected], residency: residency.value,
-      focus: focus.value, year: year.value })); } catch {}
-    result.replaceChildren();
-    if (!selected.size) {
-      result.append(element('p', 'Select the animals you want to compare.'));
-      return;
-    }
-    const target = Number(year.value);
-    const opportunities = data.opportunities.filter(item => selected.has(item.species));
-    const ids = new Set(opportunities.map(item => item.id));
-    const published = data.events.filter(event => ids.has(event.opportunityId));
-    const inYear = published.filter(event => event.start <= target + '-12-31' &&
-      (event.end || event.start) >= target + '-01-01');
-    result.append(element('h2', 'Published dates in ' + target),
-      element('p', 'Dates shown reflect the records currently loaded. Check DWR for eligibility and inventory.'),
-      eventList(inYear));
-    const seasons = inYear.filter(event => /\bseason\b/i.test(event.label));
-    const overlaps = [];
-    for (const [index, event] of seasons.entries()) {
-      const first = opportunities.find(item => item.id === event.opportunityId);
-      for (const other of seasons.slice(index + 1)) {
-        const second = opportunities.find(item => item.id === other.opportunityId);
-        if (first.species !== second.species && other.start <= (event.end || event.start) &&
-            event.start <= (other.end || other.start)) {
-          overlaps.push(first.title + ' and ' + second.title);
-        }
-      }
-    }
-    if (overlaps.length) {
-      const list = element('ul');
-      for (const value of new Set(overlaps)) list.append(element('li', value));
-      result.append(element('h2', 'Published season overlaps'), list);
-    }
-    if (target > current) {
-      const historical = published.filter(event => event.start < target + '-01-01' && /\bseason\b/i.test(event.label));
-      result.append(element('h2', 'Earlier season dates for reference'),
-        element('p', 'Use past dates as planning windows. Future dates become firm when DWR publishes them.'), eventList(historical));
-    }
-    const alternatives = opportunities.filter(item => ['General sale', 'Leftover sale', 'Year-round'].includes(item.type));
-    if (alternatives.length) result.append(element('h2', 'Alternatives while building points'),
-      element('p', 'Compare permit type and points consequences before buying. Earlier sale listings are reference only.'),
-      opportunityList(alternatives));
-    result.append(element('h2', 'Draw priorities and points plan'),
-      element('p', 'Premium and once-in-a-lifetime designations are priority signals. Trophy quality and future permit availability depend on the specific hunt.'),
-      link('Verify a unit in the Utah Hunt Planner', 'https://hunt.utah.gov/'));
-    if (!odds) result.append(element('p', odds === null ? 'Historical reports could not load.' : 'Loading historical reports…'));
-    const plans = programs.filter(([, , animal]) => selected.has(animal)).map(program => {
-      const [id, , , , calendarId] = program;
-      const balance = profile[id + '/' + residency.value];
-      const reference = (odds || []).filter(hunt => hunt[1] === id);
-      const points = Number.isInteger(balance) ? balance : undefined;
-      const rows = points === undefined ? [] : matchHistory(odds, id, residency.value, points);
-      const candidates = reference.map(([reportYear, , code, title, source]) => ({
-        reportYear, code, title, source, ...huntPriority(title, id, focus.value),
-        history: rows.find(row => row.code === code && row.year === reportYear)
-      })).sort((a, b) => b.score - a.score ||
-        sampleRank(b.history?.applicants || 0) - sampleRank(a.history?.applicants || 0) ||
-        (b.history?.issued / (b.history?.applicants || 1) || 0) - (a.history?.issued / (a.history?.applicants || 1) || 0));
-      return { program, calendarId, points, candidates, score: candidates[0]?.score || 0 };
-    }).sort((left, right) => right.score - left.score);
-    for (const { program, calendarId, points, candidates } of plans) {
-      const card = element('section', '', { class: 'detail compare-plan', 'data-species': program[2] });
-      card.append(element('h3', program[1]), pointsGuide(program, points));
-      if (candidates[0]?.score) card.append(element('p',
-        'Prioritize this draw if you would take the permit now and accept the point reset and any waiting period. Build points if you would rather save the balance for a different hunt.'));
-      else card.append(element('p',
-        'Compare this draw as a way to hunt sooner. If you are saving points in another program, check that the two permits can be held together.'));
-      if (data.opportunities.some(item => item.id === calendarId)) {
-        card.append(link('Calendar dates and application links', '#hunt/' + calendarId));
-      }
-      if (points === undefined) card.append(element('p', 'Save a balance in Draw planner for your exact-point comparison.'));
-      else {
-        const years = Array.from({ length: target - current + 1 }, (_, offset) =>
-          (current + offset) + ' starts at ' + (points + offset));
-        card.append(element('p', 'Point-building scenario: ' + years.join(' · ') +
-          '. Assumes one earned point each year before the next season and continued eligibility. Skip an application year and the balance stays unchanged.'));
-      }
-      const list = element('ul', '', { class: 'cards' });
-      let shown = 0;
-      const more = element('button', 'Show more historical hunts', { type: 'button' });
-      function showMore() {
-        for (const candidate of candidates.slice(shown, shown + 6)) {
-          const item = element('li', '', { 'data-species': program[2] });
-          item.append(element('strong', candidate.title + ' · ' + candidate.code),
-            element('p', candidate.reason || 'Historical hunt listing'),
-            element('p', candidate.history ? historyText(candidate.history) : points === undefined ? 'Add your points in Draw planner to compare this hunt.' : 'No published result at your saved point level in this report.'),
-            link('Official ' + candidate.reportYear + ' draw report', candidate.source));
-          const windows = Object.entries(huntSeasons[candidate.code] || {}).filter(([year]) => Number(year) <= target);
-          for (const [year, [start, end, source]] of windows.reverse()) {
-            const label = year === String(target) ? 'Published season for this hunt code' : 'Earlier season for this hunt code';
-            const dates = element('p', label + ' · ' + formatDate(start) + ' – ' + formatDate(end) + ' · ');
-            dates.append(link('DWR guidebook', source));
-            item.append(dates);
-          }
-          list.append(item);
-        }
-        shown = list.children.length;
-        more.hidden = shown >= candidates.length;
-      }
-      more.onclick = showMore;
-      if (candidates.length) {
-        showMore();
-        card.append(element('p', candidates.length + ' historical hunts'), list, more);
-      }
-      result.append(card);
+function shiftCalendarYear(date, year) {
+  const [, month, day] = date.split('-').map(Number);
+  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return dateKey(new Date(Date.UTC(year, month - 1, Math.min(day, last))));
+}
+
+function buildPlanningCalendar(source, date) {
+  const currentYear = Number(date.slice(0, 4));
+  const records = new Map(source.opportunities.map(item => [item.id, item]));
+  const annual = new Map();
+  for (const event of source.events) {
+    const item = records.get(event.opportunityId);
+    if (!item || item.type === 'Leftover sale' || item.estimated || event.estimated) continue;
+    if (!isSeason(event) && !/^(Applications open|Application deadline)$/.test(event.label)) continue;
+    // Optional seriesId pairs future records even if their titles or IDs change.
+    const series = item.seriesId || item.id.replace(/^\d{4}-/, '');
+    const key = series + '|' + event.label.toLowerCase();
+    if (!annual.has(key)) annual.set(key, new Map());
+    const years = annual.get(key);
+    const year = Number(event.start.slice(0, 4));
+    const existing = years.get(year);
+    // A season with multiple distinct date segments needs explicit series data.
+    years.set(year, existing === undefined ? { event, item } : null);
+  }
+  const opportunities = new Map();
+  const events = [];
+  for (const [key, years] of annual) {
+    const sourceYear = Math.max(...years.keys());
+    const template = years.get(sourceYear);
+    if (!template || sourceYear < currentYear - 1) continue;
+    const { event, item } = template;
+    const series = key.split('|')[0];
+    for (let year = Math.max(currentYear + 1, sourceYear + 1); year <= currentYear + 3; year++) {
+      if (years.has(year)) continue;
+      const huntYear = item.year + year - sourceYear;
+      const id = 'estimated-' + huntYear + '-' + series;
+      opportunities.set(id, { id, year: huntYear, title: item.title, species: item.species,
+        unit: item.unit, type: item.type, sourceUrl: item.sourceUrl, estimated: true });
+      const endYear = event.end ? Number(event.end.slice(0, 4)) + year - sourceYear : year;
+      events.push({
+        id: 'estimated-' + year + '-' + event.id,
+        opportunityId: id,
+        label: event.label,
+        start: shiftCalendarYear(event.start, year),
+        ...(event.end ? { end: shiftCalendarYear(event.end, endYear) } : {}),
+        estimated: true,
+        basis: event.end && Number(event.end.slice(0, 4)) !== sourceYear ? sourceYear + '–' + event.end.slice(0, 4) : sourceYear
+      });
     }
   }
-  update();
+  return { opportunities: [...opportunities.values()], events: events.sort((a, b) => a.start.localeCompare(b.start)) };
+}
+
+function pointScenarios(programId, points) {
+  const wait = ({ 'deer-limited': 5, 'elk-limited': 5, pronghorn: 2 })[programId] || 0;
+  const lifetime = ['moose', 'goat', 'rocky-sheep', 'desert-sheep'].includes(programId);
+  const grow = (first, offset) => first + offset;
+  return [
+    ['Apply and miss', index => grow(points + 1, index)],
+    ['Apply for a point only', index => grow(points + 1, index)],
+    ['Skip this draw cycle', index => grow(points, index)],
+    ['Apply and draw', index => index === 0 ? 0 : lifetime || index <= wait ? null : index - wait]
+  ];
+}
+
+function renderTradeoffs(section, program, residency, profile, points) {
+  const [id, name, species, kind, calendarId] = program;
+  const year = Number(today.slice(0, 4));
+  const upcoming = data.events.find(event => event.opportunityId === calendarId &&
+    event.label === 'Application deadline' && event.start >= today);
+  const first = upcoming ? Number(upcoming.start.slice(0, 4)) : year + 1;
+  section.replaceChildren(element('h2', 'Plan your points'));
+  const steps = element('ol', '', { class: 'point-steps' });
+  steps.append(
+    element('li', 'Check the current guidebook and application window for ' + name.toLowerCase() + '. Have an eligible Utah hunting or combination license.'),
+    element('li', 'In Utah Draws, select this permit program. To hunt, submit a permit application. To build points without entering the draw, select the ' + kind + ' point-only option if offered and you are eligible.'),
+    element('li', 'Keep the confirmation and verify your balance before the next draw. Check any permit or point-only fees before submitting.')
+  );
+  section.append(steps, link('Open Utah Draws', 'https://utahdraws.com/'), pointsGuide(program, points));
+  if (data.opportunities.some(item => item.id === calendarId)) {
+    section.append(link('See published calendar dates and official source', '#hunt/' + calendarId));
+  }
+  section.append(element('h3', 'Five draw cycles'),
+    element('p', 'Balances are shown after each cycle. The first column uses your selected outcome. Later columns assume you apply for one point each year when eligible. Review current rules before applying.'));
+  if (points === undefined) {
+    section.append(element('p', 'Enter a valid point balance above to see your five-cycle comparison.'));
+  } else {
+    const chart = element('div', '', { class: 'point-chart', role: 'group', 'aria-label': 'Five-cycle point balances by scenario' });
+    for (const [label, project] of pointScenarios(id, points)) {
+      const row = element('div', '', { class: 'point-scenario' });
+      row.append(element('strong', label));
+      const years = element('ol');
+      for (let index = 0; index < 5; index++) {
+        const balance = project(index);
+        const cell = element('li', '', { class: balance === null ? 'point-wait' : 'point-cell' });
+        cell.append(element('span', String(first + index)), element('b', balance === null ? 'Barred' : String(balance)));
+        if (balance !== null) cell.style.setProperty('--fill', (balance / (points + 5) * 100) + '%');
+        years.append(cell);
+      }
+      row.append(years);
+      chart.append(row);
+    }
+    section.append(chart, element('p', 'Barred includes waiting periods and lifetime draw restrictions. Scenario values are points balances.'));
+  }
+  const earlier = ['deer-limited', 'elk-limited', 'pronghorn'];
+  const lifetime = ['moose', 'goat', 'rocky-sheep', 'desert-sheep'];
+  const affected = earlier.includes(id) ? [...earlier.slice(earlier.indexOf(id) + 1), ...lifetime] : lifetime.includes(id) ? earlier : [];
+  if (affected.length) {
+    section.append(element('h3', 'Other draws in the same cycle'),
+      element('p', earlier.includes(id)
+        ? 'You can draw only one limited-entry or once-in-a-lifetime permit in the big game draw. If an earlier limited-entry draw succeeds, an eligible once-in-a-lifetime application earns a bonus point instead of entering that draw.'
+        : 'If an earlier limited-entry draw succeeds, an eligible application here earns a bonus point instead of entering the once-in-a-lifetime draw.'),
+      element('p', residency === 'Resident'
+        ? 'Residents have one limited-entry selection and one once-in-a-lifetime selection, subject to eligibility.'
+        : 'Check the nonresident application options in the current DWR guidebook.'));
+    const list = element('ul', '', { class: 'cross-draw' });
+    for (const [otherId, label] of programs.filter(([otherId]) => affected.includes(otherId))) {
+      const saved = profile[otherId + '/' + residency];
+      list.append(element('li', label + (Number.isInteger(saved) ? ' · ' + saved + ' saved points' : '')));
+    }
+    section.append(list);
+  }
+  if (species === 'Deer' || id === 'elk-limited') section.append(element('p',
+    'If you plan to use a general-season alternative, check the one-buck-deer or one-bull-elk permit limit before applying or buying.'));
 }

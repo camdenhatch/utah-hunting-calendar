@@ -123,3 +123,21 @@ label>input,label>select{min-width:0;max-width:100%}
 .compare-controls label:last-child{grid-column:auto}
 .compare-plan{margin:1rem 0}
 .compare-rule p{margin:.45rem 0}
+
+[data-species="Estimated"]{--species-color:#a8440c}
+.mini-week:not(.mini-week-header){grid-template-rows:1.2rem repeat(6,4px)}
+.estimate-note,.estimate-badge{color:#743305;background:#fff0dd;border-inline-start:3px solid #b65316;padding:.42rem .65rem;border-radius:.25rem}
+.estimate-badge{display:inline-block;font-size:.85rem}
+.planner-split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;align-items:start}
+.planner-split>section{min-width:0}
+.planner-split>section:last-child{padding:.9rem;border:1px solid var(--line);border-radius:.75rem;background:#fff}
+.planner-split>section:last-child>h2{margin-top:.2rem}
+.point-steps{padding-inline-start:1.35rem}
+.point-steps li{margin:.35rem 0}
+.point-chart{display:grid;gap:.65rem}
+.point-scenario ol{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.22rem;list-style:none;padding:0;margin:.22rem 0 0}
+.point-scenario li{display:grid;text-align:center;border:1px solid var(--line);border-radius:.35rem;padding:.26rem 0;font-size:.72rem}
+.point-cell{background:linear-gradient(to top,#d5eadc var(--fill),#f7faf8 var(--fill))}
+.point-wait{background:#fff0dd}
+.cross-draw{padding-inline-start:1.25rem}
+@media(max-width:860px){.planner-split{grid-template-columns:minmax(0,1fr)}}
