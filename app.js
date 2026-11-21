@@ -9,6 +9,77 @@ const monthFormat = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'num
 let month = new Date(today.slice(0, 7) + '-01T00:00:00Z');
 let mode = matchMedia('(max-width: 660px)').matches ? 'Agenda' : 'Month';
 let data;
+let updateStatus = '';
+const feedUrl = document.querySelector('meta[name="updates-feed"]').content;
+
+function officialUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && ['wildlife.utah.gov', 'hunt.utah.gov', 'utahdraws.com'].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function mergeUpdates(feed) {
+  const date = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    Number.isFinite(Date.parse(value));
+  if (feed.version !== 1 || !Array.isArray(feed.opportunities) ||
+      !Array.isArray(feed.events) || !Array.isArray(feed.sources)) throw new Error('Invalid update feed');
+  const opportunities = new Map(data.opportunities.map(item => [item.id, item]));
+  for (const record of feed.opportunities) {
+    const item = { ...opportunities.get(record.id), ...record };
+    if ([item.id, item.title, item.species, item.unit, item.type].every(value => typeof value === 'string' && value) &&
+        Number.isInteger(item.year) && officialUrl(item.sourceUrl) &&
+        (!item.actionUrl || officialUrl(item.actionUrl))) opportunities.set(item.id, item);
+  }
+  const events = new Map(data.events.map(item => [item.id, item]));
+  for (const record of feed.events) {
+    const event = { ...events.get(record.id), ...record };
+    if (typeof event.id === 'string' && typeof event.label === 'string' && date(event.start) &&
+        (!event.end || (date(event.end) && event.end >= event.start)) &&
+        (!event.startsAt || Number.isFinite(Date.parse(event.startsAt))) &&
+        opportunities.has(event.opportunityId) && officialUrl(event.sourceUrl)) events.set(event.id, event);
+  }
+  data.opportunities = [...opportunities.values()];
+  data.events = [...events.values()].sort((a, b) => a.start.localeCompare(b.start));
+  const priority = feed.sources.find(source => source.id === 'permits');
+  const checked = Date.parse(priority?.checkedAt);
+  const timestamp = new Intl.DateTimeFormat('en-US', {
+    timeZone: zone, dateStyle: 'medium', timeStyle: 'short'
+  });
+  const checkedText = Number.isFinite(checked)
+    ? 'Permit listing last checked ' + timestamp.format(new Date(checked)) + ' Utah time.'
+    : 'Permit listing check pending.';
+  const stale = feed.sources.some(source => source.error ||
+    Date.now() - Date.parse(source.checkedAt || '') > (source.id === 'permits' ? 2 : 26) * 3600000);
+  updateStatus = checkedText + (stale ? ' A source check is delayed. Showing the last verified data.' : '');
+}
+
+async function loadUpdates() {
+  try {
+    const response = await fetch(feedUrl, { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+    if (!response.ok) throw new Error('Update feed unavailable');
+    mergeUpdates(await response.json());
+    populateFilters();
+  } catch (error) {
+    console.error(error);
+    updateStatus = 'Live updates unavailable. Showing the published calendar.';
+  }
+  // Preserve in-progress draw-planner fields and announce updates on calendar views.
+  if (location.hash !== '#planner') render();
+}
+
+function populateFilters() {
+  for (const field of ['species', 'type']) {
+    const control = byId(field);
+    const selected = control.value;
+    const values = new Set(data.opportunities.map(item => item[field]));
+    control.length = 1;
+    for (const value of [...values].sort()) control.append(element('option', value, { value }));
+    control.value = values.has(selected) ? selected : '';
+  }
+}
 
 function element(tag, value, attributes = {}) {
   const node = document.createElement(tag);
@@ -240,6 +311,7 @@ function render() {
   }
   byId('filters').hidden = !['calendar', 'opportunities'].includes(route);
   content.replaceChildren();
+  if (updateStatus && route !== 'planner') content.append(element('p', updateStatus, { class: 'notice' }));
   if (route === 'planner') {
     heading.textContent = 'Draw planner';
     planner();
@@ -396,10 +468,10 @@ function planner() {
 }
 
 try {
-  const response = await fetch('./opportunities.json?v=3.1');
+  const response = await fetch('./opportunities.json?v=4');
   if (!response.ok) throw new Error('Fixture unavailable');
   data = await response.json();
-  fetch('./draw-history.json?v=3.1')
+  fetch('./draw-history.json?v=4')
     .then(response => {
       if (!response.ok) throw new Error('Historical dataset unavailable');
       return response.json();
@@ -407,13 +479,11 @@ try {
     .then(rows => { odds = rows; if (location.hash === '#planner') render(); })
     .catch(error => { odds = null; console.error(error); if (location.hash === '#planner') render(); });
   data.events.sort((left, right) => left.start.localeCompare(right.start));
-  for (const field of ['species', 'type']) {
-    const values = new Set(data.opportunities.map(item => item[field]));
-    for (const value of [...values].sort()) byId(field).append(element('option', value, { value }));
-  }
+  populateFilters();
   filters.forEach(control => control.addEventListener('input', render));
   window.addEventListener('hashchange', () => { render(); heading.focus(); });
   render();
+  if (feedUrl) loadUpdates();
 } catch (error) {
   content.textContent = 'The calendar data could not be loaded. Refresh the page to try again.';
   console.error(error);
