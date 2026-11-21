@@ -1,7 +1,13 @@
 # Utah Hunting Calendar
 
-Stage 1 is a static GitHub Pages project with illustrative data. Serve this directory over HTTP for local review. Place these files at the root of the chosen Pages publishing source. All asset paths are relative, and navigation uses URL hashes so deep links resolve under a repository path.
+Stage 2 adds a selected, source-linked 2026–27 dataset across the ten agreed categories and individual calendar downloads. This is program-level coverage with selected season windows. Consult the linked DWR sources for unit-by-unit dates, current inventory, and applicable requirements.
+
+## Publish the update
+
+Upload the five files from the ZIP directly to your existing repository's main branch and commit them. Keep the existing Pages settings. Once GitHub deploys the update, open Calendar, go to December 2026, and choose Agenda. Search for spring limited-entry turkey and open its details. Download the application deadline as a timed event and the season as an all-day date range.
 
 ## Data contract
 
-The top-level JSON object contains `schemaVersion`, `fixture`, `opportunities`, and `events`. IDs are unique and stable within each collection. Each event's `opportunityId` references an opportunity. Dates are Utah calendar dates in YYYY-MM-DD. Date ranges include both endpoints. `time` is optional display text for the current fixture. Stage 2 should add a machine-readable time with explicit timezone semantics for calendar export. `availableFrom` and `availableThrough` are the date-level status bounds for the sample views. `sourceUrl` points to an official HTTPS source; sample URLs point to the agency home page.
+The JSON document contains schemaVersion, fixture, opportunities, and events. Each opportunity has a stable ID, year, species, title, type, unit, source URL, and source review date. Optional actionUrl and note fields describe the official next step and eligibility. Application and season windows use inclusive local calendar dates in availableFrom and availableThrough. Sales without known inventory or an end date show Check availability after the opener.
+
+Each event has a stable ID, opportunityId, label, start date, and source URL. An optional end stores the inclusive end of a date range. An optional startsAt stores the published local timestamp with its explicit UTC offset. Calendar files use UTC for timed events and an exclusive end for all-day events.

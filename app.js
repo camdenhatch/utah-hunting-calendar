@@ -28,7 +28,10 @@ function formatDate(value) {
 function eventDate(event) {
   const start = formatDate(event.start);
   const range = event.end && event.end !== event.start ? ' – ' + formatDate(event.end) : '';
-  return start + (event.time ? ' at ' + event.time + ' Utah time' : '') + range;
+  const time = event.startsAt ? new Intl.DateTimeFormat('en-US', {
+    timeZone: zone, hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+  }).format(new Date(event.startsAt)) : '';
+  return start + (time ? ' at ' + time : '') + range;
 }
 
 function eventsFor(opportunity) {
@@ -37,6 +40,19 @@ function eventsFor(opportunity) {
 
 function statusOf(opportunity) {
   const { availableFrom, availableThrough } = opportunity;
+  if (opportunity.type === 'Year-round') return 'Year-round';
+  if (!availableThrough) {
+    const sale = eventsFor(opportunity).find(event => event.label === 'Permit sale opens');
+    return sale && (sale.startsAt ? Date.now() < Date.parse(sale.startsAt) : today < sale.start)
+      ? 'Upcoming' : 'Check availability';
+  }
+  if (today === availableFrom || today === availableThrough) {
+    const events = eventsFor(opportunity);
+    const opens = events.find(event => event.label === 'Applications open');
+    const closes = events.find(event => event.label === 'Application deadline');
+    if (opens?.startsAt && Date.now() < Date.parse(opens.startsAt)) return 'Upcoming';
+    if (closes?.startsAt && Date.now() >= Date.parse(closes.startsAt)) return 'Closed';
+  }
   if (today < availableFrom) return 'Upcoming';
   if (today > availableThrough) return 'Closed';
   return 'Open';
@@ -52,7 +68,49 @@ function filtered() {
   );
 }
 
-function eventList(events) {
+function calendarExport(event, opportunity) {
+  const escapeText = value => value.replaceAll('\\', '\\\\').replaceAll('\n', '\\n')
+    .replaceAll(',', '\\,').replaceAll(';', '\\;');
+  const stamp = value => new Date(value).toISOString().replace(/[-:]|\.\d{3}/g, '');
+  const lines = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Utah Hunting Calendar//EN',
+    'BEGIN:VEVENT', 'UID:' + event.id + '@utah-hunting-calendar',
+    'DTSTAMP:' + stamp(new Date()),
+    'SUMMARY:' + escapeText(opportunity.title + ' · ' + event.label),
+    'URL:' + (event.sourceUrl || opportunity.sourceUrl)
+  ];
+  if (event.startsAt) {
+    lines.push('DTSTART:' + stamp(event.startsAt));
+  } else {
+    const end = new Date((event.end || event.start) + 'T00:00:00Z');
+    end.setUTCDate(end.getUTCDate() + 1);
+    lines.push('DTSTART;VALUE=DATE:' + event.start.replaceAll('-', ''),
+      'DTEND;VALUE=DATE:' + end.toISOString().slice(0, 10).replaceAll('-', ''));
+  }
+  lines.push('END:VEVENT', 'END:VCALENDAR', '');
+  const encoder = new TextEncoder();
+  const folded = lines.map(line => {
+    let result = '';
+    let bytes = 0;
+    for (const character of line) {
+      const length = encoder.encode(character).length;
+      if (bytes + length > 75) {
+        result += '\r\n ';
+        bytes = 1;
+      }
+      result += character;
+      bytes += length;
+    }
+    return result;
+  });
+  const url = URL.createObjectURL(new Blob([folded.join('\r\n')], { type: 'text/calendar' }));
+  const download = link('Download calendar event', url);
+  download.download = event.id + '.ics';
+  download.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function eventList(events, showExport = false) {
   if (!events.length) return element('p', 'No matching events.');
   const list = element('ul', '', { class: 'cards' });
   for (const event of events) {
@@ -60,6 +118,12 @@ function eventList(events) {
     const opportunity = data.opportunities.find(record => record.id === event.opportunityId);
     item.append(link(opportunity.title, '#hunt/' + opportunity.id),
       element('p', event.label + ' · ' + eventDate(event)));
+    if (showExport) {
+      const exportButton = element('button', 'Download calendar event',
+        { 'aria-label': 'Download ' + event.label + ' calendar event' });
+      exportButton.onclick = () => calendarExport(event, opportunity);
+      item.append(exportButton);
+    }
     list.append(item);
   }
   return list;
@@ -151,8 +215,19 @@ function detail(id) {
   })) {
     facts.append(element('dt', label), element('dd', value));
   }
-  panel.append(facts, link('Utah wildlife agency website', item.sourceUrl),
-    element('h2', 'Calendar events'), eventList(eventsFor(item)));
+  panel.append(facts);
+  if (item.note) panel.append(element('p', item.note));
+  if (item.verifiedOn) panel.append(element('p', 'Source reviewed ' + formatDate(item.verifiedOn)));
+  panel.append(link('Official dates and regulations', item.sourceUrl));
+  if (item.actionUrl) {
+    const action = item.type === 'Draw' || item.type === 'Points only'
+      ? 'Apply or check results' : 'Check permit availability or buy';
+    const row = element('p');
+    row.append(link(action, item.actionUrl));
+    panel.append(row);
+  }
+  const events = eventsFor(item);
+  if (events.length) panel.append(element('h2', 'Calendar events'), eventList(events, true));
   content.append(panel);
 }
 

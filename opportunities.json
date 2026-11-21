@@ -1,15 +1,1115 @@
 {
-  "schemaVersion": 1,
-  "fixture": true,
+  "schemaVersion": 2,
+  "fixture": false,
   "opportunities": [
-    {"id":"demo-elk","year":2026,"species":"Elk","title":"Sample cow elk application","unit":"Example northern unit","type":"Draw","availableFrom":"2026-11-12","availableThrough":"2026-11-25","sourceUrl":"https://wildlife.utah.gov/"},
-    {"id":"demo-deer","year":2026,"species":"Deer","title":"Sample deer permit sale","unit":"Example central unit","type":"General sale","availableFrom":"2026-11-27","availableThrough":"2026-12-04","sourceUrl":"https://wildlife.utah.gov/"},
-    {"id":"demo-waterfowl","year":2026,"species":"Waterfowl","title":"Sample waterfowl season","unit":"Example statewide area","type":"Season","availableFrom":"2026-11-14","availableThrough":"2026-11-23","sourceUrl":"https://wildlife.utah.gov/"}
+    {
+      "id": "2026-big-elk",
+      "year": 2026,
+      "species": "Elk",
+      "title": "Bull elk big game draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "A Utah hunting or combination license is required to apply. Season dates depend on the hunt code and unit.",
+      "availableFrom": "2026-03-19",
+      "availableThrough": "2026-04-23"
+    },
+    {
+      "id": "2026-points-elk",
+      "year": 2026,
+      "species": "Elk",
+      "title": "Bull elk second points-only window",
+      "type": "Points only",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-big-deer",
+      "year": 2026,
+      "species": "Deer",
+      "title": "Buck deer big game draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "A Utah hunting or combination license is required to apply. Season dates depend on the hunt code and unit.",
+      "availableFrom": "2026-03-19",
+      "availableThrough": "2026-04-23"
+    },
+    {
+      "id": "2026-points-deer",
+      "year": 2026,
+      "species": "Deer",
+      "title": "Buck deer second points-only window",
+      "type": "Points only",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-big-pronghorn",
+      "year": 2026,
+      "species": "Pronghorn",
+      "title": "Buck pronghorn big game draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "A Utah hunting or combination license is required to apply. Season dates depend on the hunt code and unit.",
+      "availableFrom": "2026-03-19",
+      "availableThrough": "2026-04-23"
+    },
+    {
+      "id": "2026-points-pronghorn",
+      "year": 2026,
+      "species": "Pronghorn",
+      "title": "Buck pronghorn second points-only window",
+      "type": "Points only",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-big-moose",
+      "year": 2026,
+      "species": "Moose",
+      "title": "Bull moose big game draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "A Utah hunting or combination license is required to apply. Season dates depend on the hunt code and unit.",
+      "availableFrom": "2026-03-19",
+      "availableThrough": "2026-04-23"
+    },
+    {
+      "id": "2026-points-moose",
+      "year": 2026,
+      "species": "Moose",
+      "title": "Bull moose second points-only window",
+      "type": "Points only",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-big-goat",
+      "year": 2026,
+      "species": "Mountain goat",
+      "title": "Mountain goat big game draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "A Utah hunting or combination license is required to apply. Season dates depend on the hunt code and unit.",
+      "availableFrom": "2026-03-19",
+      "availableThrough": "2026-04-23"
+    },
+    {
+      "id": "2026-points-goat",
+      "year": 2026,
+      "species": "Mountain goat",
+      "title": "Mountain goat second points-only window",
+      "type": "Points only",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-big-rocky-sheep",
+      "year": 2026,
+      "species": "Bighorn sheep",
+      "title": "Rocky Mountain bighorn sheep big game draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "A Utah hunting or combination license is required to apply. Season dates depend on the hunt code and unit.",
+      "availableFrom": "2026-03-19",
+      "availableThrough": "2026-04-23"
+    },
+    {
+      "id": "2026-points-rocky-sheep",
+      "year": 2026,
+      "species": "Bighorn sheep",
+      "title": "Rocky Mountain bighorn sheep second points-only window",
+      "type": "Points only",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-big-desert-sheep",
+      "year": 2026,
+      "species": "Bighorn sheep",
+      "title": "Desert bighorn sheep big game draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "A Utah hunting or combination license is required to apply. Season dates depend on the hunt code and unit.",
+      "availableFrom": "2026-03-19",
+      "availableThrough": "2026-04-23"
+    },
+    {
+      "id": "2026-points-desert-sheep",
+      "year": 2026,
+      "species": "Bighorn sheep",
+      "title": "Desert bighorn sheep second points-only window",
+      "type": "Points only",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-ant-elk",
+      "year": 2026,
+      "species": "Elk",
+      "title": "Antlerless elk (cow elk) draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "Requires a Utah hunting or combination license. Check the guidebook for eligible units, hunt dates and fees.",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-ant-deer",
+      "year": 2026,
+      "species": "Deer",
+      "title": "Antlerless deer draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "Requires a Utah hunting or combination license. Check the guidebook for eligible units, hunt dates and fees.",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-ant-pronghorn",
+      "year": 2026,
+      "species": "Pronghorn",
+      "title": "Doe pronghorn draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "Requires a Utah hunting or combination license. Check the guidebook for eligible units, hunt dates and fees.",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-ant-moose",
+      "year": 2026,
+      "species": "Moose",
+      "title": "Antlerless moose draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "Requires a Utah hunting or combination license. Check the guidebook for eligible units, hunt dates and fees.",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-ant-sheep",
+      "year": 2026,
+      "species": "Bighorn sheep",
+      "title": "Ewe bighorn sheep draw",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "Requires a Utah hunting or combination license. Check the guidebook for eligible units, hunt dates and fees.",
+      "availableFrom": "2026-06-09",
+      "availableThrough": "2026-06-23"
+    },
+    {
+      "id": "2026-elk-sale-archery",
+      "year": 2026,
+      "species": "Elk",
+      "title": "General-season archery elk",
+      "type": "General sale",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://wildlife.utah.gov/licenses",
+      "note": "Check DWR for current inventory, specific permit codes and unit restrictions."
+    },
+    {
+      "id": "2026-elk-sale-any-bull",
+      "year": 2026,
+      "species": "Elk",
+      "title": "General-season any-bull elk",
+      "type": "General sale",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://wildlife.utah.gov/licenses",
+      "note": "Check DWR for current inventory, specific permit codes and unit restrictions."
+    },
+    {
+      "id": "2026-elk-sale-spike",
+      "year": 2026,
+      "species": "Elk",
+      "title": "General-season spike elk",
+      "type": "General sale",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://wildlife.utah.gov/licenses",
+      "note": "Check DWR for current inventory, specific permit codes and unit restrictions."
+    },
+    {
+      "id": "2026-elk-sale-youth",
+      "year": 2026,
+      "species": "Elk",
+      "title": "Youth general-season elk",
+      "type": "General sale",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://wildlife.utah.gov/licenses",
+      "note": "Check DWR for current inventory, specific permit codes and unit restrictions."
+    },
+    {
+      "id": "2026-deer-leftover",
+      "year": 2026,
+      "species": "Deer",
+      "title": "Remaining general-season buck deer permits",
+      "type": "Leftover sale",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://wildlife.utah.gov/licenses",
+      "note": "Published sale date only. Check DWR for current inventory."
+    },
+    {
+      "id": "2026-elk-leftover",
+      "year": 2026,
+      "species": "Elk",
+      "title": "Remaining limited-entry bull elk permits",
+      "type": "Leftover sale",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://wildlife.utah.gov/licenses",
+      "note": "The published listing included hunt EB3168. Check DWR for current inventory."
+    },
+    {
+      "id": "2026-ant-leftover",
+      "year": 2026,
+      "species": "Elk",
+      "title": "Remaining antlerless permits, if available",
+      "type": "Leftover sale",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/pdf/guidebooks/biggameapp.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://wildlife.utah.gov/remainingpermits",
+      "note": "This sale covered remaining antlerless permits across species. Check DWR for actual availability."
+    },
+    {
+      "id": "2026-deer-muzzleloader",
+      "year": 2026,
+      "species": "Deer",
+      "title": "General-season muzzleloader buck deer",
+      "type": "Season",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/08/14/what-hunters-should-know-for-the-2026-deer-and-elk-hunts",
+      "verifiedOn": "2026-11-20",
+      "note": "See the field guidebook for unit-specific seasons and exceptions.",
+      "availableFrom": "2026-09-23",
+      "availableThrough": "2026-10-01"
+    },
+    {
+      "id": "2026-deer-any-legal",
+      "year": 2026,
+      "species": "Deer",
+      "title": "General-season any legal weapon buck deer",
+      "type": "Season",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/08/14/what-hunters-should-know-for-the-2026-deer-and-elk-hunts",
+      "verifiedOn": "2026-11-20",
+      "note": "See the field guidebook for unit-specific seasons and exceptions.",
+      "availableFrom": "2026-10-17",
+      "availableThrough": "2026-10-25"
+    },
+    {
+      "id": "2026-duck-north-general",
+      "year": 2026,
+      "species": "Waterfowl",
+      "title": "General-season duck hunt · Northern zone",
+      "type": "Season",
+      "unit": "Northern zone",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "note": "Check the guidebook for required Utah license, HIP registration, federal duck stamp requirements and zone exceptions.",
+      "availableFrom": "2026-10-03",
+      "availableThrough": "2027-01-16"
+    },
+    {
+      "id": "2026-duck-north-youth",
+      "year": 2026,
+      "species": "Waterfowl",
+      "title": "Youth waterfowl hunt · Northern zone",
+      "type": "Season",
+      "unit": "Northern zone",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "note": "Check the guidebook for required Utah license, HIP registration, federal duck stamp requirements and zone exceptions.",
+      "availableFrom": "2026-09-19",
+      "availableThrough": "2026-09-19"
+    },
+    {
+      "id": "2026-duck-south-general",
+      "year": 2026,
+      "species": "Waterfowl",
+      "title": "General-season duck hunt · Southern zone",
+      "type": "Season",
+      "unit": "Southern zone",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "note": "Check the guidebook for required Utah license, HIP registration, federal duck stamp requirements and zone exceptions.",
+      "availableFrom": "2026-10-10",
+      "availableThrough": "2027-01-23"
+    },
+    {
+      "id": "2026-duck-south-youth",
+      "year": 2026,
+      "species": "Waterfowl",
+      "title": "Youth waterfowl hunt · Southern zone",
+      "type": "Season",
+      "unit": "Southern zone",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "note": "Check the guidebook for required Utah license, HIP registration, federal duck stamp requirements and zone exceptions.",
+      "availableFrom": "2026-09-26",
+      "availableThrough": "2026-09-26"
+    },
+    {
+      "id": "2026-fall-turkey",
+      "year": 2026,
+      "species": "Turkey",
+      "title": "Fall turkey management harvest",
+      "type": "General sale",
+      "unit": "Eligible areas in four DWR regions",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://wildlife.utah.gov/licenses",
+      "note": "Requires a Utah hunting or combination license and a turkey permit. Verify regional boundaries and landowner permission."
+    },
+    {
+      "id": "2027-turkey-draw",
+      "year": 2027,
+      "species": "Turkey",
+      "title": "Spring limited-entry turkey",
+      "type": "Draw",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://utahdraws.com/",
+      "note": "Requires a Utah hunting or combination license. Application fee is $10 for residents and $21 for nonresidents.",
+      "availableFrom": "2026-12-15",
+      "availableThrough": "2026-12-29"
+    },
+    {
+      "id": "2027-turkey-general",
+      "year": 2027,
+      "species": "Turkey",
+      "title": "Spring general-season turkey",
+      "type": "General sale",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "actionUrl": "https://wildlife.utah.gov/licenses",
+      "note": "Requires a Utah hunting or combination license and a wild turkey permit."
+    },
+    {
+      "id": "2026-coyote",
+      "year": 2026,
+      "species": "Coyote",
+      "title": "Coyote · year-round opportunity",
+      "type": "Year-round",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/black-bear-cougar-furbearer-guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "note": "See the Utah guidebook and local restrictions before going afield. The predator control program has separate requirements."
+    },
+    {
+      "id": "2026-jackrabbit",
+      "year": 2026,
+      "species": "Jackrabbit",
+      "title": "Black-tailed and white-tailed jackrabbit · year-round opportunity",
+      "type": "Year-round",
+      "unit": "Utah",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "verifiedOn": "2026-11-20",
+      "note": "No hunting license required under the cited guidebook. Verify closures and land access before going afield."
+    }
   ],
   "events": [
-    {"id":"elk-open","opportunityId":"demo-elk","label":"Applications open","start":"2026-11-12"},
-    {"id":"elk-close","opportunityId":"demo-elk","label":"Application deadline","start":"2026-11-25","time":"5:00 p.m."},
-    {"id":"deer-sale","opportunityId":"demo-deer","label":"Permit sale begins","start":"2026-11-27"},
-    {"id":"waterfowl-season","opportunityId":"demo-waterfowl","label":"Season window","start":"2026-11-14","end":"2026-11-23"}
+    {
+      "id": "2026-big-elk-applications-open",
+      "opportunityId": "2026-big-elk",
+      "label": "Applications open",
+      "start": "2026-03-19",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-03-19T08:00:00-06:00"
+    },
+    {
+      "id": "2026-big-elk-application-deadline",
+      "opportunityId": "2026-big-elk",
+      "label": "Application deadline",
+      "start": "2026-04-23",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-04-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-elk-draw-results-expected-by",
+      "opportunityId": "2026-big-elk",
+      "label": "Draw results expected by",
+      "start": "2026-05-31",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19"
+    },
+    {
+      "id": "2026-points-elk-applications-open",
+      "opportunityId": "2026-points-elk",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-points-elk-application-deadline",
+      "opportunityId": "2026-points-elk",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-deer-applications-open",
+      "opportunityId": "2026-big-deer",
+      "label": "Applications open",
+      "start": "2026-03-19",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-03-19T08:00:00-06:00"
+    },
+    {
+      "id": "2026-big-deer-application-deadline",
+      "opportunityId": "2026-big-deer",
+      "label": "Application deadline",
+      "start": "2026-04-23",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-04-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-deer-draw-results-expected-by",
+      "opportunityId": "2026-big-deer",
+      "label": "Draw results expected by",
+      "start": "2026-05-31",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19"
+    },
+    {
+      "id": "2026-points-deer-applications-open",
+      "opportunityId": "2026-points-deer",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-points-deer-application-deadline",
+      "opportunityId": "2026-points-deer",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-pronghorn-applications-open",
+      "opportunityId": "2026-big-pronghorn",
+      "label": "Applications open",
+      "start": "2026-03-19",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-03-19T08:00:00-06:00"
+    },
+    {
+      "id": "2026-big-pronghorn-application-deadline",
+      "opportunityId": "2026-big-pronghorn",
+      "label": "Application deadline",
+      "start": "2026-04-23",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-04-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-pronghorn-draw-results-expected-by",
+      "opportunityId": "2026-big-pronghorn",
+      "label": "Draw results expected by",
+      "start": "2026-05-31",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19"
+    },
+    {
+      "id": "2026-points-pronghorn-applications-open",
+      "opportunityId": "2026-points-pronghorn",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-points-pronghorn-application-deadline",
+      "opportunityId": "2026-points-pronghorn",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-moose-applications-open",
+      "opportunityId": "2026-big-moose",
+      "label": "Applications open",
+      "start": "2026-03-19",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-03-19T08:00:00-06:00"
+    },
+    {
+      "id": "2026-big-moose-application-deadline",
+      "opportunityId": "2026-big-moose",
+      "label": "Application deadline",
+      "start": "2026-04-23",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-04-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-moose-draw-results-expected-by",
+      "opportunityId": "2026-big-moose",
+      "label": "Draw results expected by",
+      "start": "2026-05-31",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19"
+    },
+    {
+      "id": "2026-points-moose-applications-open",
+      "opportunityId": "2026-points-moose",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-points-moose-application-deadline",
+      "opportunityId": "2026-points-moose",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-goat-applications-open",
+      "opportunityId": "2026-big-goat",
+      "label": "Applications open",
+      "start": "2026-03-19",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-03-19T08:00:00-06:00"
+    },
+    {
+      "id": "2026-big-goat-application-deadline",
+      "opportunityId": "2026-big-goat",
+      "label": "Application deadline",
+      "start": "2026-04-23",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-04-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-goat-draw-results-expected-by",
+      "opportunityId": "2026-big-goat",
+      "label": "Draw results expected by",
+      "start": "2026-05-31",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19"
+    },
+    {
+      "id": "2026-points-goat-applications-open",
+      "opportunityId": "2026-points-goat",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-points-goat-application-deadline",
+      "opportunityId": "2026-points-goat",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-rocky-sheep-applications-open",
+      "opportunityId": "2026-big-rocky-sheep",
+      "label": "Applications open",
+      "start": "2026-03-19",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-03-19T08:00:00-06:00"
+    },
+    {
+      "id": "2026-big-rocky-sheep-application-deadline",
+      "opportunityId": "2026-big-rocky-sheep",
+      "label": "Application deadline",
+      "start": "2026-04-23",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-04-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-rocky-sheep-draw-results-expected-by",
+      "opportunityId": "2026-big-rocky-sheep",
+      "label": "Draw results expected by",
+      "start": "2026-05-31",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19"
+    },
+    {
+      "id": "2026-points-rocky-sheep-applications-open",
+      "opportunityId": "2026-points-rocky-sheep",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-points-rocky-sheep-application-deadline",
+      "opportunityId": "2026-points-rocky-sheep",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-desert-sheep-applications-open",
+      "opportunityId": "2026-big-desert-sheep",
+      "label": "Applications open",
+      "start": "2026-03-19",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-03-19T08:00:00-06:00"
+    },
+    {
+      "id": "2026-big-desert-sheep-application-deadline",
+      "opportunityId": "2026-big-desert-sheep",
+      "label": "Application deadline",
+      "start": "2026-04-23",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19",
+      "startsAt": "2026-04-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-big-desert-sheep-draw-results-expected-by",
+      "opportunityId": "2026-big-desert-sheep",
+      "label": "Draw results expected by",
+      "start": "2026-05-31",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/03/05/want-the-chance-to-hunt-big-game-in-utah-in-2026-the-application-period-opens-march-19"
+    },
+    {
+      "id": "2026-points-desert-sheep-applications-open",
+      "opportunityId": "2026-points-desert-sheep",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-points-desert-sheep-application-deadline",
+      "opportunityId": "2026-points-desert-sheep",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-elk-applications-open",
+      "opportunityId": "2026-ant-elk",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-elk-application-deadline",
+      "opportunityId": "2026-ant-elk",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-elk-draw-results",
+      "opportunityId": "2026-ant-elk",
+      "label": "Draw results",
+      "start": "2026-07-08",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf"
+    },
+    {
+      "id": "2026-ant-deer-applications-open",
+      "opportunityId": "2026-ant-deer",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-deer-application-deadline",
+      "opportunityId": "2026-ant-deer",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-deer-draw-results",
+      "opportunityId": "2026-ant-deer",
+      "label": "Draw results",
+      "start": "2026-07-08",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf"
+    },
+    {
+      "id": "2026-ant-pronghorn-applications-open",
+      "opportunityId": "2026-ant-pronghorn",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-pronghorn-application-deadline",
+      "opportunityId": "2026-ant-pronghorn",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-pronghorn-draw-results",
+      "opportunityId": "2026-ant-pronghorn",
+      "label": "Draw results",
+      "start": "2026-07-08",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf"
+    },
+    {
+      "id": "2026-ant-moose-applications-open",
+      "opportunityId": "2026-ant-moose",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-moose-application-deadline",
+      "opportunityId": "2026-ant-moose",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-moose-draw-results",
+      "opportunityId": "2026-ant-moose",
+      "label": "Draw results",
+      "start": "2026-07-08",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf"
+    },
+    {
+      "id": "2026-ant-sheep-applications-open",
+      "opportunityId": "2026-ant-sheep",
+      "label": "Applications open",
+      "start": "2026-06-09",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-sheep-application-deadline",
+      "opportunityId": "2026-ant-sheep",
+      "label": "Application deadline",
+      "start": "2026-06-23",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf",
+      "startsAt": "2026-06-23T23:00:00-06:00"
+    },
+    {
+      "id": "2026-ant-sheep-draw-results",
+      "opportunityId": "2026-ant-sheep",
+      "label": "Draw results",
+      "start": "2026-07-08",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/antlerless_guidebook.pdf"
+    },
+    {
+      "id": "2026-elk-sale-archery-permit-sale-opens",
+      "opportunityId": "2026-elk-sale-archery",
+      "label": "Permit sale opens",
+      "start": "2026-07-07",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "startsAt": "2026-07-07T08:00:00-06:00"
+    },
+    {
+      "id": "2026-elk-sale-archery-spike-archery-season",
+      "opportunityId": "2026-elk-sale-archery",
+      "label": "Spike archery season",
+      "start": "2026-08-15",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "end": "2026-09-04"
+    },
+    {
+      "id": "2026-elk-sale-archery-any-bull-archery-season",
+      "opportunityId": "2026-elk-sale-archery",
+      "label": "Any-bull archery season",
+      "start": "2026-08-15",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "end": "2026-09-16"
+    },
+    {
+      "id": "2026-elk-sale-any-bull-permit-sale-opens",
+      "opportunityId": "2026-elk-sale-any-bull",
+      "label": "Permit sale opens",
+      "start": "2026-07-09",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "startsAt": "2026-07-09T08:00:00-06:00"
+    },
+    {
+      "id": "2026-elk-sale-any-bull-early-season",
+      "opportunityId": "2026-elk-sale-any-bull",
+      "label": "Early season",
+      "start": "2026-10-03",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "end": "2026-10-09"
+    },
+    {
+      "id": "2026-elk-sale-any-bull-late-season",
+      "opportunityId": "2026-elk-sale-any-bull",
+      "label": "Late season",
+      "start": "2026-10-10",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "end": "2026-10-16"
+    },
+    {
+      "id": "2026-elk-sale-any-bull-muzzleloader-season",
+      "opportunityId": "2026-elk-sale-any-bull",
+      "label": "Muzzleloader season",
+      "start": "2026-10-28",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "end": "2026-11-05"
+    },
+    {
+      "id": "2026-elk-sale-spike-permit-sale-opens",
+      "opportunityId": "2026-elk-sale-spike",
+      "label": "Permit sale opens",
+      "start": "2026-07-16",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "startsAt": "2026-07-16T08:00:00-06:00"
+    },
+    {
+      "id": "2026-elk-sale-spike-any-legal-weapon-season",
+      "opportunityId": "2026-elk-sale-spike",
+      "label": "Any legal weapon season",
+      "start": "2026-10-03",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "end": "2026-10-15"
+    },
+    {
+      "id": "2026-elk-sale-spike-muzzleloader-season",
+      "opportunityId": "2026-elk-sale-spike",
+      "label": "Muzzleloader season",
+      "start": "2026-10-28",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "end": "2026-11-05"
+    },
+    {
+      "id": "2026-elk-sale-youth-permit-sale-opens",
+      "opportunityId": "2026-elk-sale-youth",
+      "label": "Permit sale opens",
+      "start": "2026-07-07",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "startsAt": "2026-07-07T08:00:00-06:00"
+    },
+    {
+      "id": "2026-deer-leftover-permit-sale-opens",
+      "opportunityId": "2026-deer-leftover",
+      "label": "Permit sale opens",
+      "start": "2026-07-07",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "startsAt": "2026-07-07T08:00:00-06:00"
+    },
+    {
+      "id": "2026-elk-leftover-permit-sale-opens",
+      "opportunityId": "2026-elk-leftover",
+      "label": "Permit sale opens",
+      "start": "2026-07-07",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "startsAt": "2026-07-07T08:00:00-06:00"
+    },
+    {
+      "id": "2026-elk-leftover-cache-meadowville-archery-season",
+      "opportunityId": "2026-elk-leftover",
+      "label": "Cache, Meadowville archery season",
+      "start": "2026-11-28",
+      "sourceUrl": "https://wildlife.utah.gov/remainingpermits",
+      "end": "2026-12-13"
+    },
+    {
+      "id": "2026-ant-leftover-permit-sale-opens",
+      "opportunityId": "2026-ant-leftover",
+      "label": "Permit sale opens",
+      "start": "2026-07-28",
+      "sourceUrl": "https://wildlife.utah.gov/pdf/guidebooks/biggameapp.pdf"
+    },
+    {
+      "id": "2026-deer-muzzleloader-season",
+      "opportunityId": "2026-deer-muzzleloader",
+      "label": "Season",
+      "start": "2026-09-23",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/08/14/what-hunters-should-know-for-the-2026-deer-and-elk-hunts",
+      "end": "2026-10-01"
+    },
+    {
+      "id": "2026-deer-any-legal-season",
+      "opportunityId": "2026-deer-any-legal",
+      "label": "Season",
+      "start": "2026-10-17",
+      "sourceUrl": "https://wildlife.utah.gov/news/2026/08/14/what-hunters-should-know-for-the-2026-deer-and-elk-hunts",
+      "end": "2026-10-25"
+    },
+    {
+      "id": "2026-duck-north-general-season",
+      "opportunityId": "2026-duck-north-general",
+      "label": "Season",
+      "start": "2026-10-03",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "end": "2027-01-16"
+    },
+    {
+      "id": "2026-duck-north-youth-season",
+      "opportunityId": "2026-duck-north-youth",
+      "label": "Season",
+      "start": "2026-09-19",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "end": "2026-09-19"
+    },
+    {
+      "id": "2026-duck-south-general-season",
+      "opportunityId": "2026-duck-south-general",
+      "label": "Season",
+      "start": "2026-10-10",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "end": "2027-01-23"
+    },
+    {
+      "id": "2026-duck-south-youth-season",
+      "opportunityId": "2026-duck-south-youth",
+      "label": "Season",
+      "start": "2026-09-26",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "end": "2026-09-26"
+    },
+    {
+      "id": "2026-fall-turkey-permit-sale-opens",
+      "opportunityId": "2026-fall-turkey",
+      "label": "Permit sale opens",
+      "start": "2026-09-10",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "startsAt": "2026-09-10T08:00:00-06:00"
+    },
+    {
+      "id": "2026-fall-turkey-season",
+      "opportunityId": "2026-fall-turkey",
+      "label": "Season",
+      "start": "2026-10-01",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "end": "2027-02-28"
+    },
+    {
+      "id": "2027-turkey-draw-applications-open",
+      "opportunityId": "2027-turkey-draw",
+      "label": "Applications open",
+      "start": "2026-12-15",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "startsAt": "2026-12-15T08:00:00-07:00"
+    },
+    {
+      "id": "2027-turkey-draw-application-deadline",
+      "opportunityId": "2027-turkey-draw",
+      "label": "Application deadline",
+      "start": "2026-12-29",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "startsAt": "2026-12-29T23:00:00-07:00"
+    },
+    {
+      "id": "2027-turkey-draw-draw-results",
+      "opportunityId": "2027-turkey-draw",
+      "label": "Draw results",
+      "start": "2027-01-07",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf"
+    },
+    {
+      "id": "2027-turkey-draw-season",
+      "opportunityId": "2027-turkey-draw",
+      "label": "Season",
+      "start": "2027-04-10",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "end": "2027-04-29"
+    },
+    {
+      "id": "2027-turkey-general-permit-sale-opens",
+      "opportunityId": "2027-turkey-general",
+      "label": "Permit sale opens",
+      "start": "2027-03-11",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "startsAt": "2027-03-11T08:00:00-07:00"
+    },
+    {
+      "id": "2027-turkey-general-youth-season",
+      "opportunityId": "2027-turkey-general",
+      "label": "Youth season",
+      "start": "2027-04-30",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "end": "2027-05-02"
+    },
+    {
+      "id": "2027-turkey-general-season",
+      "opportunityId": "2027-turkey-general",
+      "label": "Season",
+      "start": "2027-05-03",
+      "sourceUrl": "https://wildlife.utah.gov/guidebooks/waterfowl-upland-game-turkey-guidebook.pdf",
+      "end": "2027-05-31"
+    }
   ]
 }
