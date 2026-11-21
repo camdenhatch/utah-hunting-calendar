@@ -397,7 +397,7 @@ function calendar() {
     { id: 'calendar-month-title', tabindex: '-1' }), controls);
   content.append(bar);
   if (events.some(event => event.estimated && event.start <= year + '-12-31' && (event.end || event.start) >= year + '-01-01')) {
-    content.append(element('p', 'Orange marks are estimated from prior seasons. Confirm dates with Utah DWR before applying or hunting.', { class: 'estimate-note' }));
+    content.append(element('p', 'Yellow marks are estimated from prior seasons. Confirm dates with Utah DWR before applying or hunting.', { class: 'estimate-note' }));
   }
   if (mode === 'Year') {
     content.append(yearOverview(year, events, opportunities));
