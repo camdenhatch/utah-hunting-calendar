@@ -187,6 +187,7 @@ function eventList(events, showExport = false) {
   for (const event of events) {
     const item = element('li');
     const opportunity = data.opportunities.find(record => record.id === event.opportunityId);
+    item.dataset.species = opportunity.species;
     item.append(link(opportunity.title, '#hunt/' + opportunity.id),
       element('p', event.label + ' · ' + eventDate(event)));
     if (showExport) {
@@ -200,6 +201,8 @@ function eventList(events, showExport = false) {
   return list;
 }
 
+const speciesColors = ['Elk', 'Deer', 'Waterfowl', 'Turkey', 'Other species'];
+const colorGroup = species => speciesColors.includes(species) ? species : 'Other species';
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dateKey = value => value.toISOString().slice(0, 10);
 
@@ -218,22 +221,73 @@ function weekSegments(events, dates) {
   });
 }
 
-function yearOverview(year, events) {
+function seasonMarks(events, dates, opportunities) {
+  const masks = new Map();
+  for (const { event, start, end } of weekSegments(events, dates)) {
+    const species = colorGroup(opportunities.get(event.opportunityId).species);
+    const span = ((1 << (end - start + 1)) - 1) << start;
+    masks.set(species, (masks.get(species) || 0) | span);
+  }
+  return masks;
+}
+
+function yearOverview(year, events, opportunities) {
+  const section = element('section', '', { 'aria-label': 'Hunting seasons in ' + year });
+  const legend = element('ul', '', { class: 'species-legend', 'aria-label': 'Season colors by species' });
+  for (const species of speciesColors) legend.append(element('li', species, { 'data-species': species }));
+  section.append(legend);
+  const seasons = events.filter(event => /\bseason\b/i.test(event.label));
+  if (!seasons.some(event => event.start <= year + '-12-31' && (event.end || event.start) >= year + '-01-01')) {
+    section.append(element('p', 'No published season dates match this year and your filters.'));
+  }
+
   const grid = element('div', '', { class: 'year-grid' });
+  const formatter = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' });
   for (let index = 0; index < 12; index++) {
     const first = new Date(Date.UTC(year, index));
-    const last = new Date(Date.UTC(year, index + 1, 0));
+    const last = dateKey(new Date(Date.UTC(year, index + 1, 0)));
     const firstKey = dateKey(first);
-    const lastKey = dateKey(last);
-    const monthly = events.filter(event => event.start <= lastKey && (event.end || event.start) >= firstKey);
-    const name = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(first);
+    const monthly = seasons.filter(event => event.start <= last && (event.end || event.start) >= firstKey);
+    const groups = [...new Set(monthly.map(event => colorGroup(opportunities.get(event.opportunityId).species)))];
+    const name = formatter.format(first);
     const tile = element('button', '', { class: 'year-month', 'aria-label': name + ' ' + year +
-      ', ' + monthly.length + ' matching events' });
-    tile.append(element('strong', name), element('span', monthly.length + (monthly.length === 1 ? ' event' : ' events')));
+      (groups.length ? ', seasons: ' + groups.join(', ') : ', no matching seasons') + '. Open month view.' });
+    tile.append(element('strong', name));
+    const preview = element('span', '', { class: 'mini-month', 'aria-hidden': 'true' });
+    const header = element('span', '', { class: 'mini-week mini-week-header' });
+    for (const day of weekdays) header.append(element('span', day[0]));
+    preview.append(header);
+    for (let week = 0; week < 6; week++) {
+      const dates = weekdays.map((_, column) =>
+        dateKey(new Date(Date.UTC(year, index, week * 7 + column - first.getUTCDay() + 1))));
+      const line = element('span', '', { class: 'mini-week' });
+      for (const date of dates) {
+        line.append(element('span', String(Number(date.slice(-2))), {
+          class: date < firstKey || date > last ? 'mini-outside' : date === today ? 'mini-today' : ''
+        }));
+      }
+      const marks = seasonMarks(monthly, dates.map(date => date < firstKey || date > last ? null : date), opportunities);
+      for (const [lane, species] of speciesColors.entries()) {
+        const mask = marks.get(species) || 0;
+        for (let start = 0; start < 7; start++) {
+          if (!(mask & (1 << start))) continue;
+          let end = start;
+          while (mask & (1 << (end + 1))) end++;
+          const stripe = element('span', '', { class: 'mini-season', 'data-species': species });
+          stripe.style.gridColumn = (start + 1) + ' / ' + (end + 2);
+          stripe.style.gridRow = lane + 2;
+          line.append(stripe);
+          start = end;
+        }
+      }
+      preview.append(line);
+    }
+    tile.append(preview);
     tile.onclick = () => { month = first; mode = 'Month'; render(); byId('calendar-month-title').focus(); };
     grid.append(tile);
   }
-  return grid;
+  section.append(grid);
+  return section;
 }
 
 function monthGrid(events, opportunities) {
@@ -330,19 +384,14 @@ function calendar() {
     { id: 'calendar-month-title', tabindex: '-1' }), controls);
   content.append(bar);
   if (mode === 'Year') {
-    content.append(yearOverview(year, events));
+    content.append(yearOverview(year, events, opportunities));
     return;
   }
   if (mode === 'Agenda') {
     content.append(eventList(monthly));
     return;
   }
-  const legend = element('ul', '', { class: 'species-legend', 'aria-label': 'Species colors' });
-  for (const species of ['Elk', 'Deer', 'Waterfowl', 'Turkey', 'Other species']) {
-    const item = element('li', species, { 'data-species': species });
-    legend.append(item);
-  }
-  content.append(legend, monthGrid(monthly, opportunities));
+  content.append(monthGrid(monthly, opportunities));
   if (!monthly.length) content.append(element('p', 'No matching events this month.'));
 }
 
@@ -350,7 +399,7 @@ function opportunityList(items) {
   if (!items.length) return element('p', 'No matching opportunities.');
   const list = element('ul', '', { class: 'cards' });
   for (const item of items) {
-    const row = element('li');
+    const row = element('li', '', { 'data-species': item.species });
     row.append(link(item.title, '#hunt/' + item.id),
       element('p', [item.species, item.type, statusOf(item)].join(' · ')));
     list.append(row);
@@ -504,7 +553,7 @@ function planner() {
     else {
       const list = element('ul', '', { class: 'cards' });
       for (const row of rows) {
-        const item = element('li');
+        const item = element('li', '', { 'data-species': species });
         const rate = row.applicants ? (row.issued / row.applicants * 100).toFixed(1) + '%' : 'No eligible applicants';
         item.append(element('strong', row.hunt + ' · ' + row.code),
           element('p', row.year + ' · ' + row.pool + ' · ' + rate + ' · ' +
@@ -527,7 +576,7 @@ function planner() {
     }
     const list = element('ul', '', { class: 'cards' });
     for (const item of alternatives) {
-      const row = element('li');
+      const row = element('li', '', { 'data-species': item.species });
       const pathway = item.type === 'Leftover sale' ? 'Remaining permits if available' : 'General permit sale';
       const eligibility = item.id === '2026-elk-sale-youth' ? ' · Youth eligibility required' : '';
       row.append(link(item.title, '#hunt/' + item.id),

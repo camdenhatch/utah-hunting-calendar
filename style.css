@@ -58,3 +58,16 @@ label>*{width:100%}
 .year-month span{font-size:.8rem;color:var(--muted)}
 .year-month:hover{border-color:var(--green)}
 @media(max-width:660px){.year-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.event-bar{padding-inline:.18rem;margin-inline:.09rem;font-size:.7rem}}
+
+.year-month{align-content:start;gap:.55rem}
+.mini-month{display:grid;gap:.24rem}
+.mini-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:1.15rem repeat(5,2px);row-gap:1px;text-align:center}
+.mini-week-header{grid-template-rows:1.15rem;font-weight:650}
+.mini-week>span:not(.mini-season){font-size:.73rem;color:var(--ink)}
+.mini-week>span.mini-outside{color:#697a6d}
+.mini-week>span.mini-today{font-weight:750;text-decoration:underline}
+.mini-season{background:var(--species-color,#171717);border-radius:2px}
+.cards li[data-species]{background:color-mix(in srgb,var(--species-color,#171717) 8%,white);border-inline-start:3px solid color-mix(in srgb,var(--species-color,#171717) 35%,white)}
+@media(max-width:380px){.year-month{padding:.45rem}.mini-week>span:not(.mini-season){font-size:.66rem}}
+
+.mini-week>span:not(.mini-season){grid-row:1}
