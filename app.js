@@ -200,62 +200,150 @@ function eventList(events, showExport = false) {
   return list;
 }
 
-function calendar() {
-  const monthKey = month.toISOString().slice(0, 7);
+const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const dateKey = value => value.toISOString().slice(0, 10);
+
+function weekSegments(events, dates) {
+  const lanes = [];
+  return events.flatMap(event => {
+    const start = dates.findIndex(date => date && date >= event.start && date <= (event.end || event.start));
+    if (start < 0) return [];
+    let end = start;
+    while (dates[end + 1] && dates[end + 1] <= (event.end || event.start)) end++;
+    const mask = ((1 << (end - start + 1)) - 1) << start;
+    let lane = lanes.findIndex(used => !(used & mask));
+    if (lane < 0) lane = lanes.push(0) - 1;
+    lanes[lane] |= mask;
+    return [{ event, start, end, lane }];
+  });
+}
+
+function yearOverview(year, events) {
+  const grid = element('div', '', { class: 'year-grid' });
+  for (let index = 0; index < 12; index++) {
+    const first = new Date(Date.UTC(year, index));
+    const last = new Date(Date.UTC(year, index + 1, 0));
+    const firstKey = dateKey(first);
+    const lastKey = dateKey(last);
+    const monthly = events.filter(event => event.start <= lastKey && (event.end || event.start) >= firstKey);
+    const name = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(first);
+    const tile = element('button', '', { class: 'year-month', 'aria-label': name + ' ' + year +
+      ', ' + monthly.length + ' matching events' });
+    tile.append(element('strong', name), element('span', monthly.length + (monthly.length === 1 ? ' event' : ' events')));
+    tile.onclick = () => { month = first; mode = 'Month'; render(); byId('calendar-month-title').focus(); };
+    grid.append(tile);
+  }
+  return grid;
+}
+
+function monthGrid(events, opportunities) {
+  const grid = element('section', '', { class: 'month-grid', 'aria-label': monthFormat.format(month) });
+  const header = element('div', '', { class: 'weekdays', 'aria-hidden': 'true' });
+  for (const name of weekdays) header.append(element('span', name));
+  grid.append(header);
   const year = month.getUTCFullYear();
   const index = month.getUTCMonth();
-  const last = new Date(Date.UTC(year, index + 1, 0)).toISOString().slice(0, 10);
-  const first = monthKey + '-01';
-  const ids = new Set(filtered().map(item => item.id));
-  const events = data.events.filter(event =>
-    ids.has(event.opportunityId) && event.start <= last && (event.end || event.start) >= first);
-  const bar = element('div', '', { class: 'toolbar' });
+  const offset = month.getUTCDay();
+  const count = new Date(Date.UTC(year, index + 1, 0)).getUTCDate();
+  for (let slot = 0; slot < offset + count; slot += 7) {
+    const dates = weekdays.map((_, column) => {
+      const day = slot + column - offset + 1;
+      return day < 1 || day > count ? null : dateKey(new Date(Date.UTC(year, index, day)));
+    });
+    const weekStart = dates.find(Boolean);
+    const week = element('div', '', { class: 'calendar-week', role: 'group',
+      'aria-label': 'Week starting ' + formatDate(weekStart) });
+    const background = element('div', '', { class: 'week-background', 'aria-hidden': 'true' });
+    for (const date of dates) background.append(element('span', '', date ? {} : { class: 'outside-month' }));
+    week.append(background);
+    dates.forEach((date, column) => {
+      if (!date) return;
+      const number = element('time', String(Number(date.slice(-2))), { datetime: date, class: 'day-number' });
+      number.style.gridColumn = column + 1;
+      if (date === today) number.setAttribute('aria-current', 'date');
+      week.append(number);
+    });
+    for (const { event, start, end, lane } of weekSegments(events, dates)) {
+      const opportunity = opportunities.get(event.opportunityId);
+      const label = opportunity.title + ' · ' + event.label;
+      const bar = link(label, '#hunt/' + opportunity.id);
+      bar.className = 'event-bar';
+      bar.dataset.species = opportunity.species;
+      bar.title = label + ' · ' + eventDate(event);
+      bar.setAttribute('aria-label', bar.title);
+      bar.style.gridColumn = (start + 1) + ' / ' + (end + 2);
+      bar.style.gridRow = lane + 2;
+      week.append(bar);
+    }
+    grid.append(week);
+  }
+  return grid;
+}
+
+function calendar() {
+  const year = month.getUTCFullYear();
+  const index = month.getUTCMonth();
+  const first = dateKey(month);
+  const last = dateKey(new Date(Date.UTC(year, index + 1, 0)));
+  const opportunities = new Map(filtered().map(item => [item.id, item]));
+  const events = data.events.filter(event => opportunities.has(event.opportunityId));
+  const monthly = events.filter(event => event.start <= last && (event.end || event.start) >= first);
+  const bar = element('div', '', { class: 'toolbar calendar-toolbar' });
   const controls = element('div', '', { class: 'toolbar' });
+  const shift = amount => {
+    month = mode === 'Year' ? new Date(Date.UTC(year + amount, index))
+      : new Date(Date.UTC(year, index + amount));
+  };
   const actions = [
-    ['Previous', () => { month = new Date(Date.UTC(year, index - 1)); }],
+    ['Previous', () => shift(-1)],
     ['Today', () => { month = new Date(today.slice(0, 7) + '-01T00:00:00Z'); }],
-    ['Next', () => { month = new Date(Date.UTC(year, index + 1)); }],
-    ['Month', () => { mode = 'Month'; }],
-    ['Agenda', () => { mode = 'Agenda'; }]
+    ['Next', () => shift(1)],
+    ...['Month', 'Agenda', 'Year'].map(view => [view, () => { mode = view; }])
   ];
   for (const [label, action] of actions) {
     const button = element('button', label, { id: 'calendar-' + label });
-    if (label === 'Month' || label === 'Agenda') button.setAttribute('aria-pressed', String(mode === label));
+    if (['Month', 'Agenda', 'Year'].includes(label)) button.setAttribute('aria-pressed', String(mode === label));
+    if (label === 'Previous' || label === 'Next') {
+      button.setAttribute('aria-label', label + (mode === 'Year' ? ' year' : ' month'));
+    }
     button.onclick = () => { action(); render(); byId(button.id).focus(); };
     controls.append(button);
   }
-  bar.append(element('h2', monthFormat.format(month)), controls);
+  const yearLabel = element('label', 'Calendar year', { class: 'calendar-year-label' });
+  const picker = element('select', '', { id: 'calendar-year-picker' });
+  const years = new Set([Number(today.slice(0, 4)), year]);
+  for (const event of data.events) {
+    const start = Number(event.start.slice(0, 4));
+    const end = Number((event.end || event.start).slice(0, 4));
+    for (let value = start; value <= end; value++) years.add(value);
+  }
+  for (const value of [...years].sort((a, b) => a - b)) picker.append(element('option', String(value)));
+  picker.value = String(year);
+  picker.onchange = () => {
+    month = new Date(Date.UTC(Number(picker.value), index));
+    render();
+    byId(picker.id).focus();
+  };
+  yearLabel.append(picker);
+  controls.append(yearLabel);
+  bar.append(element('h2', mode === 'Year' ? String(year) : monthFormat.format(month),
+    { id: 'calendar-month-title', tabindex: '-1' }), controls);
   content.append(bar);
-  if (mode === 'Agenda') {
-    content.append(eventList(events));
+  if (mode === 'Year') {
+    content.append(yearOverview(year, events));
     return;
   }
-  const scroll = element('div', '', { class: 'calendar-scroll', tabindex: '0', 'aria-label': 'Month grid' });
-  const table = element('table', '', { 'aria-label': monthFormat.format(month) });
-  const header = table.createTHead().insertRow();
-  for (const day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']) {
-    header.append(element('th', day, { scope: 'col' }));
+  if (mode === 'Agenda') {
+    content.append(eventList(monthly));
+    return;
   }
-  const body = table.createTBody();
-  const offset = month.getUTCDay();
-  const days = Number(last.slice(-2));
-  for (let slot = 0; slot < Math.ceil((offset + days) / 7) * 7; slot++) {
-    if (slot % 7 === 0) body.insertRow();
-    const cell = body.rows[body.rows.length - 1].insertCell();
-    const day = slot - offset + 1;
-    if (day < 1 || day > days) continue;
-    const key = monthKey + '-' + String(day).padStart(2, '0');
-    const date = element('time', String(day), { datetime: key });
-    if (key === today) date.setAttribute('aria-current', 'date');
-    cell.append(date);
-    for (const event of events.filter(record => record.start <= key && (record.end || record.start) >= key)) {
-      const opportunity = data.opportunities.find(item => item.id === event.opportunityId);
-      cell.append(link(opportunity.title + ' · ' + event.label, '#hunt/' + opportunity.id));
-    }
+  const legend = element('ul', '', { class: 'species-legend', 'aria-label': 'Species colors' });
+  for (const species of ['Elk', 'Deer', 'Waterfowl', 'Turkey', 'Other species']) {
+    const item = element('li', species, { 'data-species': species });
+    legend.append(item);
   }
-  scroll.append(table);
-  content.append(scroll);
-  if (!events.length) content.append(element('p', 'No matching events this month.'));
+  content.append(legend, monthGrid(monthly, opportunities));
+  if (!monthly.length) content.append(element('p', 'No matching events this month.'));
 }
 
 function opportunityList(items) {

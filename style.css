@@ -23,14 +23,38 @@ label>*{width:100%}
 .cards{list-style:none;padding:0;display:grid;gap:.65rem}
 .cards li,.detail{padding:1rem;background:white;border:1px solid var(--line);border-radius:.45rem}
 .cards p{margin:.25rem 0;color:var(--muted)}
-.calendar-scroll{overflow:auto;margin-top:1rem}
-table{border-collapse:collapse;width:100%;min-width:650px;table-layout:fixed;background:white}
-th,td{border:1px solid var(--line);padding:.4rem;text-align:left;vertical-align:top}
-td{height:5rem}
-td a{display:block;background:#e7efe6;border-radius:.25rem;margin:.2rem 0;padding:.15rem .25rem;font-size:.78rem;overflow-wrap:anywhere}
 .detail dl{display:grid;grid-template-columns:max-content 1fr;gap:.4rem 1rem}
 .detail dt{font-weight:650}.detail dd{margin:0}
 @media(max-width:660px){#filters:not([hidden]){grid-template-columns:1fr 1fr}.masthead .wrap{gap:0}.masthead nav{width:100%}.detail dl{grid-template-columns:1fr}.detail dd{margin-bottom:.6rem}}
 .planner-controls{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:.85rem}
 .planner-controls>*{min-width:0}
 @media(max-width:660px){.planner-controls{grid-template-columns:1fr 1fr}.planner-controls label:first-child{grid-column:1/-1}}
+
+.calendar-toolbar h2{margin:.5rem 0}
+.calendar-toolbar .toolbar{justify-content:flex-start;gap:.45rem}
+.calendar-year-label{display:flex;align-items:center;gap:.45rem}
+.calendar-year-label select{width:auto}
+.species-legend{display:flex;flex-wrap:wrap;gap:.35rem;list-style:none;padding:0;margin:.85rem 0}
+.species-legend li,.event-bar{background:#171717;color:#fff;border-radius:.25rem}
+.species-legend li{padding:.12rem .48rem;font-size:.77rem}
+[data-species="Elk"]{--species-color:#173f2c}
+[data-species="Deer"]{--species-color:#684323}
+[data-species="Waterfowl"]{--species-color:#2149ae}
+[data-species="Turkey"]{--species-color:#a2380a}
+.species-legend li,.event-bar{background:var(--species-color,#171717)}
+.month-grid{border:1px solid var(--line);border-radius:.45rem;overflow:visible;background:white}
+.weekdays,.calendar-week,.week-background{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.weekdays span{padding:.42rem .25rem;text-align:center;font-size:.8rem;font-weight:650}
+.calendar-week{position:relative;isolation:isolate;border-top:1px solid var(--line);grid-template-rows:1.6rem;grid-auto-rows:1.5rem;row-gap:.18rem;min-height:3.65rem;padding:.12rem 0 .4rem;align-content:start}
+.week-background{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.week-background span+span{border-left:1px solid var(--line)}
+.outside-month{background:#f1f2ed}
+.day-number{grid-row:1;justify-self:center;align-self:center;font-size:.82rem;line-height:1.4;padding:0 .32rem}
+.day-number[aria-current]{background:var(--green);color:white;border-radius:1rem;font-weight:700}
+.event-bar{display:block;margin:0 .17rem;padding:.19rem .37rem;line-height:1.12rem;font-size:.77rem;text-decoration:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.event-bar:hover{text-decoration:underline}
+.year-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.55rem;margin-top:.85rem}
+.year-month{display:grid;text-align:left;gap:.2rem;padding:.72rem;background:white;border-color:var(--line)}
+.year-month span{font-size:.8rem;color:var(--muted)}
+.year-month:hover{border-color:var(--green)}
+@media(max-width:660px){.year-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.event-bar{padding-inline:.18rem;margin-inline:.09rem;font-size:.7rem}}
