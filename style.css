@@ -31,3 +31,6 @@ td a{display:block;background:#e7efe6;border-radius:.25rem;margin:.2rem 0;paddin
 .detail dl{display:grid;grid-template-columns:max-content 1fr;gap:.4rem 1rem}
 .detail dt{font-weight:650}.detail dd{margin:0}
 @media(max-width:660px){#filters:not([hidden]){grid-template-columns:1fr 1fr}.masthead .wrap{gap:0}.masthead nav{width:100%}.detail dl{grid-template-columns:1fr}.detail dd{margin-bottom:.6rem}}
+.planner-controls{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:.85rem}
+.planner-controls>*{min-width:0}
+@media(max-width:660px){.planner-controls{grid-template-columns:1fr 1fr}.planner-controls label:first-child{grid-column:1/-1}}

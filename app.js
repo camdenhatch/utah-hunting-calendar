@@ -240,7 +240,10 @@ function render() {
   }
   byId('filters').hidden = !['calendar', 'opportunities'].includes(route);
   content.replaceChildren();
-  if (route === 'calendar') {
+  if (route === 'planner') {
+    heading.textContent = 'Draw planner';
+    planner();
+  } else if (route === 'calendar') {
     heading.textContent = 'Calendar';
     calendar();
   } else if (route === 'opportunities') {
@@ -258,10 +261,151 @@ function render() {
   }
 }
 
+const programs = [
+  ['deer-general', 'General-season buck deer', 'Deer', 'preference', '2026-big-deer'],
+  ['deer-limited', 'Limited-entry buck deer', 'Deer', 'bonus', '2026-big-deer'],
+  ['elk-limited', 'Limited-entry bull elk', 'Elk', 'bonus', '2026-big-elk'],
+  ['elk-antlerless', 'Antlerless elk', 'Elk', 'preference', '2026-ant-elk'],
+  ['deer-antlerless', 'Antlerless deer', 'Deer', 'preference', '2026-ant-deer'],
+  ['pronghorn', 'Buck pronghorn', 'Pronghorn', 'bonus', '2026-big-pronghorn'],
+  ['pronghorn-antlerless', 'Doe pronghorn', 'Pronghorn', 'preference', '2026-ant-pronghorn'],
+  ['moose', 'Bull moose', 'Moose', 'bonus', '2026-big-moose'],
+  ['moose-antlerless', 'Antlerless moose', 'Moose', 'bonus', '2026-ant-moose'],
+  ['goat', 'Mountain goat', 'Mountain goat', 'bonus', '2026-big-goat'],
+  ['rocky-sheep', 'Rocky Mountain bighorn sheep', 'Bighorn sheep', 'bonus', '2026-big-rocky-sheep'],
+  ['desert-sheep', 'Desert bighorn sheep', 'Bighorn sheep', 'bonus', '2026-big-desert-sheep'],
+  ['ewe', 'Ewe bighorn sheep', 'Bighorn sheep', 'bonus', '2026-ant-sheep'],
+  ['turkey', 'Spring limited-entry turkey', 'Turkey', 'bonus', '2027-turkey-draw']
+];
+const profileKey = 'utah-hunting-calendar-draw-points-v1';
+let odds;
+
+function readProfile() {
+  try {
+    return JSON.parse(localStorage.getItem(profileKey)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function planner() {
+  const profile = readProfile();
+  const controls = element('div', '', { class: 'planner-controls' });
+  const program = element('select');
+  for (const [id, name] of programs) program.append(element('option', name, { value: id }));
+  const residency = element('select');
+  for (const name of ['Resident', 'Nonresident']) residency.append(element('option', name));
+  const points = element('input', '', { type: 'number', min: '0', max: '99', step: '1' });
+  const year = element('select');
+  year.append(element('option', 'All loaded years', { value: '' }));
+  for (const value of [...new Set((odds || []).map(row => row.year))].sort().reverse()) {
+    year.append(element('option', String(value)));
+  }
+  for (const [label, control] of [['Draw program', program], ['Residency', residency],
+    ['Points', points], ['Report year', year]]) {
+    const field = element('label', label);
+    field.append(control);
+    controls.append(field);
+  }
+  const result = element('div', '', { 'aria-live': 'polite' });
+  const persistence = element('p', 'Points are saved in this browser.');
+  program.value = programs.some(([id]) => id === profile.program) ? profile.program : programs[0][0];
+  residency.value = profile.residency === 'Nonresident' ? 'Nonresident' : 'Resident';
+  function key() { return program.value + '/' + residency.value; }
+  function refreshPoints() {
+    const selected = programs.find(([id]) => id === program.value);
+    points.parentElement.firstChild.textContent = selected[3] === 'bonus' ? 'Bonus points' : 'Preference points';
+    points.value = profile[key()] ?? '';
+  }
+  function save() {
+    profile.program = program.value;
+    profile.residency = residency.value;
+    try {
+      localStorage.setItem(profileKey, JSON.stringify(profile));
+    } catch {
+      persistence.textContent = 'Browser storage is unavailable. Points will reset when this page is reopened.';
+    }
+  }
+  function showResults() {
+    result.replaceChildren(element('h2', 'Historical first-choice results'));
+    const [, , species, , calendarId] = programs.find(([id]) => id === program.value);
+    if (data.opportunities.some(item => item.id === calendarId)) {
+      result.append(link('View application dates and official links', '#hunt/' + calendarId));
+    }
+    const rows = (odds || []).filter(row => row.program === program.value &&
+      row.residency === residency.value && row.points === points.valueAsNumber &&
+      (!year.value || row.year === Number(year.value)));
+    rows.sort((left, right) => right.year - left.year ||
+      (right.issued / (right.applicants || 1)) - (left.issued / (left.applicants || 1)));
+    if (!odds) result.append(element('p', odds === null ? 'The historical dataset could not be loaded.' : 'Loading historical results…'));
+    else if (!points.value) result.append(element('p', 'Enter your points to compare the matching historical group.'));
+    else if (!points.validity.valid) result.append(element('p', 'Enter a whole number from 0 to 99.'));
+    else if (!rows.length) result.append(element('p', 'No loaded report row matches this selection.'));
+    else {
+      const list = element('ul', '', { class: 'cards' });
+      for (const row of rows) {
+        const item = element('li');
+        const rate = row.applicants ? (row.issued / row.applicants * 100).toFixed(1) + '%' : 'No eligible applicants';
+        item.append(element('strong', row.hunt + ' · ' + row.code),
+          element('p', row.year + ' · ' + row.pool + ' · ' + rate + ' · ' +
+            row.issued.toLocaleString() + ' permits / ' + row.applicants.toLocaleString() + ' eligible applicants'),
+          link('Official DWR report', row.source));
+        list.append(item);
+      }
+      result.append(list);
+    }
+    result.append(element('p', 'Historical success rates describe those applicants and years. Future results depend on quotas and demand.'),
+      link('Browse official DWR reports', species === 'Turkey'
+        ? 'https://wildlife.utah.gov/odds' : 'https://wildlife.utah.gov/biggame/odds'),
+      element('h2', 'Options without a draw'));
+    const alternatives = data.opportunities.filter(item => item.species === species &&
+      ['General sale', 'Leftover sale'].includes(item.type) && item.actionUrl);
+    if (!alternatives.length) {
+      result.append(element('p', 'No same-species purchase option is listed in the calendar.'),
+        link('Check DWR’s remaining permits page', 'https://wildlife.utah.gov/remainingpermits'));
+      return;
+    }
+    const list = element('ul', '', { class: 'cards' });
+    for (const item of alternatives) {
+      const row = element('li');
+      const pathway = item.type === 'Leftover sale' ? 'Remaining permits if available' : 'General permit sale';
+      const eligibility = item.id === '2026-elk-sale-youth' ? ' · Youth eligibility required' : '';
+      row.append(link(item.title, '#hunt/' + item.id),
+        element('p', item.year + ' · Same species · ' + pathway + eligibility + ' · Check DWR for inventory'));
+      list.append(row);
+    }
+    result.append(list);
+  }
+  for (const control of [program, residency]) control.onchange = () => {
+    refreshPoints();
+    save();
+    showResults();
+  };
+  points.oninput = () => {
+    if (points.validity.valid) {
+      if (points.value) profile[key()] = points.valueAsNumber;
+      else delete profile[key()];
+      save();
+    }
+    showResults();
+  };
+  year.onchange = showResults;
+  refreshPoints();
+  content.append(controls, persistence, result);
+  showResults();
+}
+
 try {
   const response = await fetch('./opportunities.json');
   if (!response.ok) throw new Error('Fixture unavailable');
   data = await response.json();
+  fetch('./draw-history.json')
+    .then(response => {
+      if (!response.ok) throw new Error('Historical dataset unavailable');
+      return response.json();
+    })
+    .then(rows => { odds = rows; if (location.hash === '#planner') render(); })
+    .catch(error => { odds = null; console.error(error); if (location.hash === '#planner') render(); });
   data.events.sort((left, right) => left.start.localeCompare(right.start));
   for (const field of ['species', 'type']) {
     const values = new Set(data.opportunities.map(item => item[field]));
