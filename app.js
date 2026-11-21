@@ -236,7 +236,7 @@ function weekSegments(events, dates) {
 function seasonMarks(events, dates, opportunities) {
   const masks = new Map();
   for (const { event, start, end } of weekSegments(events, dates)) {
-    const species = event.estimated ? 'Estimated' : colorGroup(opportunities.get(event.opportunityId).species);
+    const species = event.estimated ? 'Estimated' : event.application ? 'Applications' : colorGroup(opportunities.get(event.opportunityId).species);
     const span = ((1 << (end - start + 1)) - 1) << start;
     masks.set(species, (masks.get(species) || 0) | span);
   }
@@ -246,9 +246,9 @@ function seasonMarks(events, dates, opportunities) {
 function yearOverview(year, events, opportunities) {
   const section = element('section', '', { 'aria-label': 'Hunting seasons in ' + year });
   const legend = element('ul', '', { class: 'species-legend', 'aria-label': 'Season colors by species' });
-  for (const species of [...speciesColors, 'Estimated']) legend.append(element('li', species, { 'data-species': species }));
+  for (const species of [...speciesColors, 'Applications', 'Estimated']) legend.append(element('li', species, { 'data-species': species }));
   section.append(legend);
-  const seasons = events.filter(isSeason);
+  const seasons = events.filter(event => isSeason(event) || event.application);
   if (!seasons.some(event => event.start <= year + '-12-31' && (event.end || event.start) >= year + '-01-01')) {
     section.append(element('p', 'No season dates match this year and your filters.'));
   }
@@ -260,11 +260,12 @@ function yearOverview(year, events, opportunities) {
     const last = dateKey(new Date(Date.UTC(year, index + 1, 0)));
     const firstKey = dateKey(first);
     const monthly = seasons.filter(event => event.start <= last && (event.end || event.start) >= firstKey);
-    const groups = [...new Set(monthly.map(event => colorGroup(opportunities.get(event.opportunityId).species)))];
+    const groups = [...new Set(monthly.filter(isSeason).map(event => colorGroup(opportunities.get(event.opportunityId).species)))];
     const name = formatter.format(first);
     const tile = element('button', '', { class: 'year-month', 'aria-label': name + ' ' + year +
-      (groups.length ? ', seasons: ' + groups.join(', ') : ', no matching seasons') + (monthly.some(event => event.estimated) ? ', includes estimates' : '') + '. Open month view.' });
+      (groups.length ? ', seasons: ' + groups.join(', ') : ', no matching seasons') + (monthly.some(event => event.application) ? ', application dates' : '') + (monthly.some(event => event.estimated) ? ', includes estimates' : '') + '. Open month view.' });
     tile.append(element('strong', name));
+    if (monthly.some(event => event.application)) tile.append(element('span', 'Application dates', { class: 'year-app-label' }));
     const preview = element('span', '', { class: 'mini-month', 'aria-hidden': 'true' });
     const header = element('span', '', { class: 'mini-week mini-week-header' });
     for (const day of weekdays) header.append(element('span', day[0]));
@@ -279,7 +280,7 @@ function yearOverview(year, events, opportunities) {
         }));
       }
       const marks = seasonMarks(monthly, dates.map(date => date < firstKey || date > last ? null : date), opportunities);
-      for (const [lane, species] of [...speciesColors, 'Estimated'].entries()) {
+      for (const [lane, species] of [...speciesColors, 'Applications', 'Estimated'].entries()) {
         const mask = marks.get(species) || 0;
         for (let start = 0; start < 7; start++) {
           if (!(mask & (1 << start))) continue;
@@ -331,10 +332,11 @@ function monthGrid(events, opportunities) {
     });
     for (const { event, start, end, lane } of weekSegments(events, dates)) {
       const opportunity = opportunities.get(event.opportunityId);
-      const label = (event.estimated ? 'Estimated · ' : '') + opportunity.title + ' · ' + event.label;
+      const label = (event.estimated ? 'Estimated · ' : '') +
+        (event.application ? event.label + ' · ' + event.application : opportunity.title + ' · ' + event.label);
       const bar = link(label, '#hunt/' + opportunity.id);
       bar.className = 'event-bar';
-      bar.dataset.species = event.estimated ? 'Estimated' : opportunity.species;
+      bar.dataset.species = event.estimated ? 'Estimated' : event.application ? 'Applications' : opportunity.species;
       bar.title = label + ' · ' + eventDate(event);
       bar.setAttribute('aria-label', bar.title);
       bar.style.gridColumn = (start + 1) + ' / ' + (end + 2);
@@ -354,7 +356,12 @@ function calendar() {
   const opportunities = new Map(filtered().map(item => [item.id, item]));
   const allEvents = [...data.events, ...planning.events];
   const events = allEvents.filter(event => opportunities.has(event.opportunityId));
-  const monthly = events.filter(event => event.start <= last && (event.end || event.start) >= first);
+  const windows = applicationWindows(events, opportunities);
+  const windowBars = windows.map(group => applicationBar(group));
+  const nonApplication = events.filter(event => !applicationBoundary(event));
+  const monthly = nonApplication.filter(event => event.start <= last && (event.end || event.start) >= first);
+  const monthlyWindows = windows.filter(({ opens, closes }) =>
+    (opens || closes).start <= last && (closes || opens).start >= first);
   const bar = element('div', '', { class: 'toolbar calendar-toolbar' });
   const controls = element('div', '', { class: 'toolbar' });
   const shift = amount => {
@@ -400,15 +407,22 @@ function calendar() {
     content.append(element('p', 'Yellow marks are estimated from prior seasons. Confirm dates with Utah DWR before applying or hunting.', { class: 'estimate-note' }));
   }
   if (mode === 'Year') {
-    content.append(yearOverview(year, events, opportunities));
+    content.append(yearOverview(year, [...nonApplication, ...windowBars], opportunities));
     return;
   }
+  content.append(applicationPanel(monthlyWindows, 'Applications this month', false));
   if (mode === 'Agenda') {
     content.append(eventList(monthly));
     return;
   }
-  content.append(monthGrid(monthly, opportunities));
-  if (!monthly.length) content.append(element('p', 'No matching events this month.'));
+  const applicationBars = monthlyWindows.flatMap(group => {
+    const bar = applicationBar(group);
+    if (!group.opens || !group.closes || group.opens.start === group.closes.start) return [bar];
+    return [bar, { ...group.opens, application: group.name, label: 'Opens' },
+      { ...group.closes, application: group.name, label: 'Deadline' }];
+  });
+  content.append(monthGrid([...applicationBars, ...monthly], opportunities));
+  if (!monthly.length && !monthlyWindows.length) content.append(element('p', 'No matching events this month.'));
 }
 
 function opportunityList(items) {
@@ -480,10 +494,15 @@ function render() {
     detail(route.slice(5));
   } else {
     heading.textContent = 'Plan your Utah hunting year';
-    content.append(element('h2', 'Open now'),
+    const items = new Map([...data.opportunities, ...planning.opportunities].map(item => [item.id, item]));
+    const windows = applicationWindows([...data.events, ...planning.events], items)
+      .filter(group => !applicationClosed(group));
+    const upcoming = [...windows.filter(group => !group.estimated), ...windows.filter(group => group.estimated)];
+    content.append(applicationPanel(upcoming.slice(0, 6), 'Draw application dates', true),
+      element('h2', 'Open now'),
       opportunityList(data.opportunities.filter(item => statusOf(item) === 'Open')),
       element('h2', 'Coming up'),
-      eventList(data.events.filter(event => event.start >= today).slice(0, 6)),
+      eventList(data.events.filter(event => event.start >= today && !applicationBoundary(event)).slice(0, 6)),
       link('View full calendar', '#calendar'));
   }
 }
@@ -865,4 +884,79 @@ function renderTradeoffs(section, program, residency, profile, points) {
   }
   if (species === 'Deer' || id === 'elk-limited') section.append(element('p',
     'If you plan to use a general-season alternative, check the one-buck-deer or one-bull-elk permit limit before applying or buying.'));
+}
+
+function applicationBoundary(event) {
+  return ['Applications open', 'Application deadline'].includes(event.label);
+}
+
+function applicationWindows(events, opportunities) {
+  const perOpportunity = new Map();
+  for (const event of events) {
+    if (!applicationBoundary(event) || !opportunities.has(event.opportunityId)) continue;
+    const record = perOpportunity.get(event.opportunityId) || {};
+    record[event.label === 'Applications open' ? 'opens' : 'closes'] = event;
+    perOpportunity.set(event.opportunityId, record);
+  }
+  const groups = new Map();
+  for (const [id, { opens, closes }] of perOpportunity) {
+    const item = opportunities.get(id);
+    const name = item.type === 'Points only' ? 'Points-only window'
+      : /-big-/.test(id) ? 'Big game draw' : /-ant-/.test(id) ? 'Antlerless draw'
+        : item.title;
+    const estimated = Boolean(opens?.estimated || closes?.estimated);
+    const key = JSON.stringify([name, opens?.startsAt || opens?.start,
+      closes?.startsAt || closes?.start, estimated]);
+    if (!groups.has(key)) groups.set(key, { name, opens, closes, estimated, hunts: [] });
+    groups.get(key).hunts.push(item);
+  }
+  return [...groups.values()].sort((a, b) =>
+    (a.opens || a.closes).start.localeCompare((b.opens || b.closes).start));
+}
+
+function applicationClosed(group) {
+  return group.closes?.startsAt ? Date.parse(group.closes.startsAt) <= Date.now()
+    : (group.closes || group.opens).start < today;
+}
+
+function applicationBar(group) {
+  const { opens, closes, name, estimated } = group;
+  const first = opens || closes;
+  return { ...first, end: closes?.start || first.start, estimated, application: name,
+    label: opens && closes ? 'Application window' : opens ? 'Opens' : 'Deadline' };
+}
+
+function applicationPanel(groups, title, overview) {
+  const section = element('section', '', { class: 'application-panel', 'aria-label': title });
+  section.append(element('h2', title));
+  if (!groups.length) {
+    section.append(element('p', overview ? 'No upcoming draw windows are listed.' : 'No application windows match this month.'));
+    return section;
+  }
+  const list = element('ul', '', { class: 'application-list' });
+  for (const group of groups) {
+    const { opens, closes, hunts } = group;
+    const row = element('li', '', { class: group.estimated ? 'application-estimated' : 'application-confirmed' });
+    const open = !group.estimated && !applicationClosed(group) && opens &&
+      (opens.startsAt ? Date.parse(opens.startsAt) <= Date.now() : opens.start <= today);
+    row.append(element('h3', group.name));
+    if (group.estimated) row.append(estimateBadge(opens || closes));
+    else if (open) row.append(element('p', 'Open now', { class: 'application-open' }));
+    const dates = element('dl', '', { class: 'application-dates' });
+    for (const [label, event] of [['Opens', opens], ['Deadline', closes]]) {
+      const pair = element('div');
+      pair.append(element('dt', label), element('dd', event ? eventDate(event) : 'Date unavailable'));
+      dates.append(pair);
+    }
+    row.append(dates);
+    const links = element('div', '', { class: 'application-links' });
+    for (const item of hunts) {
+      links.append(link(hunts.length === 1 ? 'Details' : item.species, '#hunt/' + item.id));
+    }
+    row.append(links);
+    list.append(row);
+  }
+  section.append(list);
+  if (overview) section.append(link('View application dates on the calendar', '#calendar'));
+  return section;
 }

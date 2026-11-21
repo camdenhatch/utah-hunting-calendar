@@ -143,3 +143,16 @@ label>input,label>select{min-width:0;max-width:100%}
 .point-wait{background:#fff0dd}
 .cross-draw{padding-inline-start:1.25rem}
 @media(max-width:860px){.planner-split{grid-template-columns:minmax(0,1fr)}}
+
+[data-species="Applications"]{--species-color:#523496}
+.mini-week:not(.mini-week-header){grid-template-rows:1.2rem repeat(7,4px)}
+.year-month>span.year-app-label,.application-open{color:#523496;font-weight:700}
+.application-panel{margin:1rem 0 1.3rem}
+.application-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr));gap:.6rem;list-style:none;padding:0}
+.application-list>li{border:1px solid var(--line);border-inline-start:4px solid #523496;background:#faf7ff;padding:.7rem .85rem;border-radius:.55rem}
+.application-list>li.application-estimated{background:#fff9df;border-inline-start-color:#be9417}
+.application-list h3,.application-list p{margin:.15rem 0}
+.application-dates{display:flex;flex-wrap:wrap;gap:.35rem 1rem;margin:.45rem 0}
+.application-dates dt{font-size:.82rem;font-weight:700}
+.application-dates dd{margin:0}
+.application-links{display:flex;flex-wrap:wrap;gap:.25rem .65rem;font-size:.86rem}
