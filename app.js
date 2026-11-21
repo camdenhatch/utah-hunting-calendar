@@ -452,6 +452,9 @@ function render() {
   if (route === 'planner') {
     heading.textContent = 'Draw planner';
     planner();
+  } else if (route === 'compare') {
+    heading.textContent = 'Hunt Compare';
+    huntCompare();
   } else if (route === 'calendar') {
     heading.textContent = 'Calendar';
     calendar();
@@ -488,21 +491,23 @@ const programs = [
 ];
 const profileKey = 'utah-hunting-calendar-draw-points-v1';
 let odds;
+let huntSeasons = {};
 let oddsRequest;
 
 function loadDrawHistory() {
   if (oddsRequest) return;
-  oddsRequest = fetch('./draw-history.json?v=6.3')
+  oddsRequest = fetch('./draw-history.json?v=7')
     .then(response => {
       if (!response.ok) throw new Error('Historical dataset unavailable');
       return response.json();
     })
     .then(report => {
-      if (report.version !== 2 || !Array.isArray(report.hunts)) throw new Error('Unexpected report format');
+      if (report.version !== 3 || !Array.isArray(report.hunts)) throw new Error('Unexpected report format');
       odds = report.hunts;
+      huntSeasons = report.seasons || {};
     })
     .catch(error => { odds = null; console.error(error); })
-    .finally(() => { if (location.hash === '#planner') render(); });
+    .finally(() => { if (['#planner', '#compare'].includes(location.hash)) render(); });
 }
 
 function matchHistory(hunts, program, residency, points, reportYear) {
@@ -511,10 +516,10 @@ function matchHistory(hunts, program, residency, points, reportYear) {
     const group = residency === 'Resident' ? resident : nonresident;
     const match = group.find(([level]) => level === points);
     if (!match) return [];
-    const [, applicants, issued] = match;
-    return [{ year, code, hunt, source, applicants, issued }];
+    const [, applicants, issued, bonus, regular] = match;
+    return [{ year, code, hunt, source, applicants, issued, bonus, regular }];
   }).sort((left, right) => right.year - left.year ||
-    Number(right.applicants > 0) - Number(left.applicants > 0) ||
+    sampleRank(right.applicants) - sampleRank(left.applicants) ||
     (right.issued / (right.applicants || 1)) - (left.issued / (left.applicants || 1)));
 }
 
@@ -568,7 +573,9 @@ function planner() {
   }
   function showResults() {
     result.replaceChildren(element('h2', 'Historical first-choice results'));
-    const [, , species, , calendarId] = programs.find(([id]) => id === program.value);
+    const selected = programs.find(([id]) => id === program.value);
+    const [, , species, , calendarId] = selected;
+    result.append(pointsGuide(selected));
     if (data.opportunities.some(item => item.id === calendarId)) {
       result.append(link('View application dates and official links', '#hunt/' + calendarId));
     }
@@ -586,10 +593,8 @@ function planner() {
       function appendResults() {
         for (const row of rows.slice(displayed, displayed + 24)) {
           const item = element('li', '', { 'data-species': species });
-          const rate = row.applicants ? (row.issued / row.applicants * 100).toFixed(1) + '%' : 'No eligible applicants';
           item.append(element('strong', row.hunt + ' · ' + row.code),
-            element('p', row.year + ' · ' + rate + ' · ' +
-              row.issued.toLocaleString() + ' permits / ' + row.applicants.toLocaleString() + ' eligible applicants'),
+            element('p', historyText(row)),
             link('Official DWR report', row.source));
           list.append(item);
         }
@@ -605,7 +610,7 @@ function planner() {
       result.append(element('p', rows.length + ' matching hunt' + (rows.length === 1 ? '' : 's')),
         list, showMore);
     }
-    result.append(element('p', 'Historical success rates describe those applicants and years. Future results depend on quotas and demand.'),
+    result.append(element('p', 'Results use published first-choice cohorts at your exact point level and residency. Bonus and regular figures are awards from the same cohort. Future quotas and demand can change. Larger samples appear first.'),
       link('Browse official DWR reports', species === 'Turkey'
         ? 'https://wildlife.utah.gov/odds' : 'https://wildlife.utah.gov/biggame/odds'),
       element('h2', 'Options without a draw'));
@@ -660,4 +665,206 @@ try {
 } catch (error) {
   content.textContent = 'The calendar data could not be loaded. Refresh the page to try again.';
   console.error(error);
+}
+
+function sampleRank(count) {
+  return count >= 20 ? 3 : count >= 5 ? 2 : count > 0 ? 1 : 0;
+}
+
+function historyText(row) {
+  if (!row.applicants) return row.year + ' · No eligible applicants in this group';
+  const percent = (100 * row.issued / row.applicants).toFixed(1);
+  const sample = ['', ' · Very small sample', ' · Small sample', ''][sampleRank(row.applicants)];
+  return row.year + ' · ' + row.issued + ' of ' + row.applicants + ' drew (' + percent + '%)' + sample +
+    ' · ' + row.bonus + ' bonus and ' + row.regular + ' regular awards';
+}
+
+function pointsGuide([id, name, , kind], points) {
+  const panel = element('div', '', { class: 'compare-rule' });
+  const reset = points === undefined ? 'your balance resets' : points + ' → 0 points';
+  const gain = points === undefined ? 'earn one point if eligible' : points + ' → ' + (points + 1) + ' points if eligible';
+  const waiting = {
+    'deer-limited': 'The standard limited-entry buck deer waiting period is five years.',
+    'elk-limited': 'The standard limited-entry bull elk waiting period is five years.',
+    pronghorn: 'The standard buck pronghorn waiting period is two years.'
+  }[id] || (['moose', 'goat', 'rocky-sheep', 'desert-sheep'].includes(id)
+    ? 'This is a once-in-a-lifetime program. Obtaining the permit can end future eligibility for that program.' : '');
+  panel.append(element('strong', name + ' · ' + kind + ' points'),
+    element('p', 'If you draw: ' + reset + '. ' + waiting),
+    element('p', 'If you miss or apply for a point only: ' + gain + '. Check eligibility and the application window.'),
+    element('p', kind === 'bonus'
+      ? 'A permit obtained after the draw in the same bonus-point program can also forfeit your points. Check the permit terms.'
+      : id === 'deer-general' ? 'Check the sale terms before treating a leftover permit as points-neutral.'
+      : 'Buying a leftover antlerless permit can forfeit preference points for that species.'),
+    element('p', ['deer-limited', 'elk-limited', 'pronghorn', 'moose', 'goat', 'rocky-sheep', 'desert-sheep'].includes(id)
+      ? 'Check the big game draw order before applying across programs. A successful earlier limited-entry draw can remove you from the once-in-a-lifetime draw.'
+      : 'Use published first-choice results to compare first choices. The report cannot tell you the odds for later choices.'),
+    link('DWR points rules', 'https://wildlife.utah.gov/licenses/points'), document.createTextNode(' · '),
+    link('Big game eligibility and waiting periods', 'https://wildlife.utah.gov/biggame'));
+  return panel;
+}
+
+function huntPriority(title, program, focus) {
+  const premium = /\bpremium\b/i.test(title);
+  const lifetime = ['moose', 'goat', 'rocky-sheep', 'desert-sheep'].includes(program);
+  return {
+    score: focus === 'unique' ? 3 * Number(lifetime) + Number(premium) : 3 * Number(premium) + Number(lifetime),
+    reason: [premium && 'DWR premium hunt designation', lifetime && 'Once-in-a-lifetime draw program']
+      .filter(Boolean).join(' · ')
+  };
+}
+
+function huntCompare() {
+  loadDrawHistory();
+  const key = 'utah-hunt-compare-v1';
+  let options = {};
+  try { options = JSON.parse(localStorage.getItem(key)) || {}; } catch {}
+  const profile = readProfile();
+  const species = [...new Set(data.opportunities.map(item => item.species))].sort();
+  const selected = new Set(options.species || ['Elk', 'Deer']);
+  const residency = element('select');
+  for (const label of ['Resident', 'Nonresident']) residency.append(element('option', label));
+  residency.value = options.residency || profile.residency || 'Resident';
+  const focus = element('select');
+  for (const [value, label] of [['trophy', 'Premium hunts'], ['unique', 'Unique opportunities']]) {
+    focus.append(element('option', label, { value }));
+  }
+  focus.value = options.focus || 'trophy';
+  const year = element('select');
+  const current = Number(today.slice(0, 4));
+  for (let value = current; value <= Math.max(current + 1, 2028); value++) year.append(element('option', String(value)));
+  if ([...year.options].some(option => option.value === options.year)) year.value = options.year;
+  const animals = element('fieldset', '', { class: 'compare-animals' });
+  animals.append(element('legend', 'Animals to compare'));
+  for (const animal of species) {
+    const input = element('input', '', { type: 'checkbox' });
+    input.checked = selected.has(animal);
+    input.onchange = () => {
+      if (input.checked) selected.add(animal);
+      else selected.delete(animal);
+      update();
+    };
+    const label = element('label');
+    label.append(input, document.createTextNode(animal));
+    animals.append(label);
+  }
+  const controls = element('div', '', { class: 'planner-controls compare-controls' });
+  for (const [label, input] of [['Residency', residency], ['Prioritize', focus], ['Planning year', year]]) {
+    const field = element('label', label);
+    field.append(input);
+    input.onchange = update;
+    controls.append(field);
+  }
+  const result = element('div');
+  content.append(animals, controls, result);
+
+  function update() {
+    try { localStorage.setItem(key, JSON.stringify({ species: [...selected], residency: residency.value,
+      focus: focus.value, year: year.value })); } catch {}
+    result.replaceChildren();
+    if (!selected.size) {
+      result.append(element('p', 'Select the animals you want to compare.'));
+      return;
+    }
+    const target = Number(year.value);
+    const opportunities = data.opportunities.filter(item => selected.has(item.species));
+    const ids = new Set(opportunities.map(item => item.id));
+    const published = data.events.filter(event => ids.has(event.opportunityId));
+    const inYear = published.filter(event => event.start <= target + '-12-31' &&
+      (event.end || event.start) >= target + '-01-01');
+    result.append(element('h2', 'Published dates in ' + target),
+      element('p', 'Dates shown reflect the records currently loaded. Check DWR for eligibility and inventory.'),
+      eventList(inYear));
+    const seasons = inYear.filter(event => /\bseason\b/i.test(event.label));
+    const overlaps = [];
+    for (const [index, event] of seasons.entries()) {
+      const first = opportunities.find(item => item.id === event.opportunityId);
+      for (const other of seasons.slice(index + 1)) {
+        const second = opportunities.find(item => item.id === other.opportunityId);
+        if (first.species !== second.species && other.start <= (event.end || event.start) &&
+            event.start <= (other.end || other.start)) {
+          overlaps.push(first.title + ' and ' + second.title);
+        }
+      }
+    }
+    if (overlaps.length) {
+      const list = element('ul');
+      for (const value of new Set(overlaps)) list.append(element('li', value));
+      result.append(element('h2', 'Published season overlaps'), list);
+    }
+    if (target > current) {
+      const historical = published.filter(event => event.start < target + '-01-01' && /\bseason\b/i.test(event.label));
+      result.append(element('h2', 'Earlier season dates for reference'),
+        element('p', 'Use past dates as planning windows. Future dates become firm when DWR publishes them.'), eventList(historical));
+    }
+    const alternatives = opportunities.filter(item => ['General sale', 'Leftover sale', 'Year-round'].includes(item.type));
+    if (alternatives.length) result.append(element('h2', 'Alternatives while building points'),
+      element('p', 'Compare permit type and points consequences before buying. Earlier sale listings are reference only.'),
+      opportunityList(alternatives));
+    result.append(element('h2', 'Draw priorities and points plan'),
+      element('p', 'Premium and once-in-a-lifetime designations are priority signals. Trophy quality and future permit availability depend on the specific hunt.'),
+      link('Verify a unit in the Utah Hunt Planner', 'https://hunt.utah.gov/'));
+    if (!odds) result.append(element('p', odds === null ? 'Historical reports could not load.' : 'Loading historical reports…'));
+    const plans = programs.filter(([, , animal]) => selected.has(animal)).map(program => {
+      const [id, , , , calendarId] = program;
+      const balance = profile[id + '/' + residency.value];
+      const reference = (odds || []).filter(hunt => hunt[1] === id);
+      const points = Number.isInteger(balance) ? balance : undefined;
+      const rows = points === undefined ? [] : matchHistory(odds, id, residency.value, points);
+      const candidates = reference.map(([reportYear, , code, title, source]) => ({
+        reportYear, code, title, source, ...huntPriority(title, id, focus.value),
+        history: rows.find(row => row.code === code && row.year === reportYear)
+      })).sort((a, b) => b.score - a.score ||
+        sampleRank(b.history?.applicants || 0) - sampleRank(a.history?.applicants || 0) ||
+        (b.history?.issued / (b.history?.applicants || 1) || 0) - (a.history?.issued / (a.history?.applicants || 1) || 0));
+      return { program, calendarId, points, candidates, score: candidates[0]?.score || 0 };
+    }).sort((left, right) => right.score - left.score);
+    for (const { program, calendarId, points, candidates } of plans) {
+      const card = element('section', '', { class: 'detail compare-plan', 'data-species': program[2] });
+      card.append(element('h3', program[1]), pointsGuide(program, points));
+      if (candidates[0]?.score) card.append(element('p',
+        'Prioritize this draw if you would take the permit now and accept the point reset and any waiting period. Build points if you would rather save the balance for a different hunt.'));
+      else card.append(element('p',
+        'Compare this draw as a way to hunt sooner. If you are saving points in another program, check that the two permits can be held together.'));
+      if (data.opportunities.some(item => item.id === calendarId)) {
+        card.append(link('Calendar dates and application links', '#hunt/' + calendarId));
+      }
+      if (points === undefined) card.append(element('p', 'Save a balance in Draw planner for your exact-point comparison.'));
+      else {
+        const years = Array.from({ length: target - current + 1 }, (_, offset) =>
+          (current + offset) + ' starts at ' + (points + offset));
+        card.append(element('p', 'Point-building scenario: ' + years.join(' · ') +
+          '. Assumes one earned point each year before the next season and continued eligibility. Skip an application year and the balance stays unchanged.'));
+      }
+      const list = element('ul', '', { class: 'cards' });
+      let shown = 0;
+      const more = element('button', 'Show more historical hunts', { type: 'button' });
+      function showMore() {
+        for (const candidate of candidates.slice(shown, shown + 6)) {
+          const item = element('li', '', { 'data-species': program[2] });
+          item.append(element('strong', candidate.title + ' · ' + candidate.code),
+            element('p', candidate.reason || 'Historical hunt listing'),
+            element('p', candidate.history ? historyText(candidate.history) : points === undefined ? 'Add your points in Draw planner to compare this hunt.' : 'No published result at your saved point level in this report.'),
+            link('Official ' + candidate.reportYear + ' draw report', candidate.source));
+          const windows = Object.entries(huntSeasons[candidate.code] || {}).filter(([year]) => Number(year) <= target);
+          for (const [year, [start, end, source]] of windows.reverse()) {
+            const label = year === String(target) ? 'Published season for this hunt code' : 'Earlier season for this hunt code';
+            const dates = element('p', label + ' · ' + formatDate(start) + ' – ' + formatDate(end) + ' · ');
+            dates.append(link('DWR guidebook', source));
+            item.append(dates);
+          }
+          list.append(item);
+        }
+        shown = list.children.length;
+        more.hidden = shown >= candidates.length;
+      }
+      more.onclick = showMore;
+      if (candidates.length) {
+        showMore();
+        card.append(element('p', candidates.length + ' historical hunts'), list, more);
+      }
+      result.append(card);
+    }
+  }
+  update();
 }
