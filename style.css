@@ -132,8 +132,8 @@ label>input,label>select{min-width:0;max-width:100%}
 .estimate-badge{display:inline-block;font-size:.85rem}
 .planner-split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;align-items:start}
 .planner-split>section{min-width:0}
-.planner-split>section:last-child{padding:.9rem;border:1px solid var(--line);border-radius:.75rem;background:#fff}
-.planner-split>section:last-child>h2{margin-top:.2rem}
+.planner-split>section:first-child{padding:.9rem;border:1px solid var(--line);border-radius:.75rem;background:#fff}
+.planner-split>section:first-child>h2{margin-top:.2rem}
 .point-steps{padding-inline-start:1.35rem}
 .point-steps li{margin:.35rem 0}
 .point-chart{display:grid;gap:.65rem}

@@ -570,7 +570,7 @@ function planner() {
   const result = element('section', '', { 'aria-live': 'polite' });
   const tradeoffs = element('section');
   const split = element('div', '', { class: 'planner-split' });
-  split.append(result, tradeoffs);
+  split.append(tradeoffs, result);
   const persistence = element('p', 'Points are saved in this browser.');
   program.value = programs.some(([id]) => id === profile.program) ? profile.program : programs[0][0];
   residency.value = profile.residency === 'Nonresident' ? 'Nonresident' : 'Resident';
