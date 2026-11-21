@@ -1,0 +1,33 @@
+:root{color-scheme:light;--ink:#203128;--muted:#4d6054;--line:#d2dad1;--paper:#f6f4ec;--green:#183b2e;--white:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 system-ui,sans-serif}
+.wrap{width:min(1100px,calc(100% - 2rem));margin:auto}
+.masthead{background:var(--green);color:var(--white)}
+.masthead .wrap,nav,.toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:1rem}
+.masthead .wrap,.toolbar{justify-content:space-between}
+.brand{font-weight:750;margin:.8rem 0}
+nav a{color:inherit;padding:.65rem 0}
+nav a[aria-current]{text-decoration-thickness:3px;text-underline-offset:.35rem}
+main{padding-bottom:3rem}
+h1{font:500 clamp(2.35rem,6vw,4.5rem)/1.08 Georgia,serif;margin:1rem 0 1.5rem}
+h2,h3{line-height:1.2}
+.notice{color:var(--muted);font-size:.9rem;margin-top:1.5rem}
+a{color:#245b43;text-underline-offset:.18em}
+button,input,select{font:inherit;color:inherit;background:white;border:1px solid #839287;border-radius:.35rem;padding:.5rem .65rem;min-height:44px}
+button{cursor:pointer}
+button[aria-pressed=true]{background:var(--green);color:white}
+:focus-visible{outline:3px solid #a14c19;outline-offset:3px}
+#filters:not([hidden]){display:grid;grid-template-columns:2fr repeat(3,1fr);gap:.85rem;margin-bottom:1.4rem}
+label{display:grid;gap:.3rem;font-weight:650;font-size:.9rem}
+label>*{width:100%}
+.cards{list-style:none;padding:0;display:grid;gap:.65rem}
+.cards li,.detail{padding:1rem;background:white;border:1px solid var(--line);border-radius:.45rem}
+.cards p{margin:.25rem 0;color:var(--muted)}
+.calendar-scroll{overflow:auto;margin-top:1rem}
+table{border-collapse:collapse;width:100%;min-width:650px;table-layout:fixed;background:white}
+th,td{border:1px solid var(--line);padding:.4rem;text-align:left;vertical-align:top}
+td{height:5rem}
+td a{display:block;background:#e7efe6;border-radius:.25rem;margin:.2rem 0;padding:.15rem .25rem;font-size:.78rem;overflow-wrap:anywhere}
+.detail dl{display:grid;grid-template-columns:max-content 1fr;gap:.4rem 1rem}
+.detail dt{font-weight:650}.detail dd{margin:0}
+@media(max-width:660px){#filters:not([hidden]){grid-template-columns:1fr 1fr}.masthead .wrap{gap:0}.masthead nav{width:100%}.detail dl{grid-template-columns:1fr}.detail dd{margin-bottom:.6rem}}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "fixture": true,
+  "opportunities": [
+    {"id":"demo-elk","year":2026,"species":"Elk","title":"Sample cow elk application","unit":"Example northern unit","type":"Draw","availableFrom":"2026-11-12","availableThrough":"2026-11-25","sourceUrl":"https://wildlife.utah.gov/"},
+    {"id":"demo-deer","year":2026,"species":"Deer","title":"Sample deer permit sale","unit":"Example central unit","type":"General sale","availableFrom":"2026-11-27","availableThrough":"2026-12-04","sourceUrl":"https://wildlife.utah.gov/"},
+    {"id":"demo-waterfowl","year":2026,"species":"Waterfowl","title":"Sample waterfowl season","unit":"Example statewide area","type":"Season","availableFrom":"2026-11-14","availableThrough":"2026-11-23","sourceUrl":"https://wildlife.utah.gov/"}
+  ],
+  "events": [
+    {"id":"elk-open","opportunityId":"demo-elk","label":"Applications open","start":"2026-11-12"},
+    {"id":"elk-close","opportunityId":"demo-elk","label":"Application deadline","start":"2026-11-25","time":"5:00 p.m."},
+    {"id":"deer-sale","opportunityId":"demo-deer","label":"Permit sale begins","start":"2026-11-27"},
+    {"id":"waterfowl-season","opportunityId":"demo-waterfowl","label":"Season window","start":"2026-11-14","end":"2026-11-23"}
+  ]
+}
